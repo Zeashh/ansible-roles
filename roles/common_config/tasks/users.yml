@@ -2,12 +2,12 @@
   block:
     - name: Edit user bashrc config
       copy:
-        src: files/bashrc
+        src: "{{ common_config_file_bashrc }}"
         dest: "/home/{{ common_config_system_user }}/.bashrc"
       no_log: true
     - name: Edit bash_logout file
       copy:
-        src: files/bash_logout
+        src: "{{ common_config_file_bash_logout }}"
         dest: "/home/{{ common_config_system_user }}/.bash_logout"
       no_log: true
     - name: Remove login banner
@@ -23,12 +23,12 @@
   block:
     - name: Edit bashrc config
       copy:
-        src: files/bashrc
+        src: "{{ common_config_file_bashrc }}"
         dest: "/root/.bashrc"
       no_log: true
     - name: Edit bash_logout file
       copy:
-        src: files/bash_logout
+        src: "{{ common_config_file_bash_logout }}"
         dest: "/root/.bash_logout"
       no_log: true
     - name: Remove login banner

@@ -16,14 +16,14 @@
 
 - name: Update SSH config
   copy:
-    src: files/sshd_config_proxmox
+    src: "{{ common_config_file_sshd_config_proxmox }}"
     dest: /etc/ssh/sshd_config
   notify: Restart SSH server
   when: inventory_hostname in groups[common_config_pve_group] + groups[common_config_pbs_group]
 
 - name: Update SSH config
   copy:
-    src: files/sshd_config_other
+    src: "{{ common_config_file_sshd_config_other }}"
     dest: /etc/ssh/sshd_config
   notify: Restart SSH server
   when: inventory_hostname not in groups[common_config_pve_group] + groups[common_config_pbs_group]

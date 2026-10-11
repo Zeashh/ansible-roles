@@ -10,7 +10,7 @@
     
     - name: Update config
       copy:
-        src: files/htoprc
+        src: "{{ common_config_file_htoprc }}"
         dest: "/home/{{ common_config_system_user }}/.config/htop/htoprc"
         owner: "{{ common_config_system_user }}"
         group: "{{ common_config_system_user }}"
@@ -25,5 +25,5 @@
         state: directory
     - name: Update config
       copy:
-        src: files/htoprc
+        src: "{{ common_config_file_htoprc }}"
         dest: /root/.config/htop/htoprc

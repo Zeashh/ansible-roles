@@ -12,7 +12,7 @@
 
 - name: Set up unattended-upgrades configuration
   copy:
-    src: files/unattended_upgrades
+    src: "{{ common_config_file_unattended_upgrades }}"
     dest: "/etc/apt/apt.conf.d/50unattended-upgrades"
   notify: Restart unattended-upgrades.service
 
