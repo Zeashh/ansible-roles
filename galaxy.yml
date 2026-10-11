@@ -1,0 +1,30 @@
+#SPDX-License-Identifier: MIT-0
+namespace: grghomelab
+name: roles
+version: 1.0.0
+
+readme: README.md
+
+authors:
+- Patrik Grgurić <patrik.grguric1@gmail.com>
+
+description: Collection of various Ansible roles I use to make administration of my homelab easier.
+
+license:
+- Apache-2.0
+license_file: 'LICENSE'
+
+tags: []
+
+dependencies:
+  "community.general": ">=13.3.0"
+  "ansible.posix": ">=2.2.2"
+  "community.proxmox": ">=2.0.0"
+  "community.crypto": ">=3.4.0"
+
+repository: https://github.com/Zeashh/ansible-roles
+documentation: https://github.com/Zeashh/ansible-roles
+homepage: https://github.com/Zeashh/ansible-roles
+issues: https://github.com/Zeashh/ansible-roles/issues
+
+build_ignore: []
