@@ -1,0 +1,49 @@
+- name: Configure system user
+  block:
+    - name: Edit user bashrc config
+      copy:
+        src: files/bashrc
+        dest: "/home/{{ common_config_system_user }}/.bashrc"
+      no_log: true
+    - name: Edit bash_logout file
+      copy:
+        src: files/bash_logout
+        dest: "/home/{{ common_config_system_user }}/.bash_logout"
+      no_log: true
+    - name: Remove login banner
+      file:
+        path: "/home/{{ common_config_system_user }}/.hushlogin"
+        state: touch
+        owner: "{{ common_config_system_user }}"
+        group: "{{ common_config_system_user }}"
+      no_log: true
+  when: inventory_hostname not in groups[common_config_pve_group] + groups[common_config_pbs_group]
+
+- name: Configure root user
+  block:
+    - name: Edit bashrc config
+      copy:
+        src: files/bashrc
+        dest: "/root/.bashrc"
+      no_log: true
+    - name: Edit bash_logout file
+      copy:
+        src: files/bash_logout
+        dest: "/root/.bash_logout"
+      no_log: true
+    - name: Remove login banner
+      file:
+        path: "/root/.hushlogin"
+        state: touch
+      no_log: true
+
+- name: Add management authorized keys
+  authorized_key:
+    user: "{{ ansible_ssh_user }}"
+    key: "{{ item }}"
+    state: present
+  loop: "{{ common_config_management_authorized_ssh_keys }}"
+  no_log: true
+
+- name: Update HTOP config
+  import_tasks: htop.yml

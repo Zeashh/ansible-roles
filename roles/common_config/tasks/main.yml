@@ -1,0 +1,34 @@
+- name: Gather facts
+  gather_facts:
+
+- name: Proxmox exclusive tasks
+  import_tasks: proxmox.yml
+  when: inventory_hostname in groups[common_config_pve_group] + groups[common_config_pbs_group]
+  tags:
+    - common_config_proxmox
+
+- name: VM/CT exclusive tasks
+  import_tasks: vm_and_ct.yml
+  when: inventory_hostname not in groups[common_config_pve_group] + groups[common_config_pbs_group]
+  tags:
+    - common_config_vm_and_ct
+
+- name: Tasks related to updates and necessary packages
+  import_tasks: updates.yml
+  tags:
+    - common_config_updates
+
+- name: Miscellaneous tasks
+  import_tasks: misc.yml
+  tags:
+    - common_config_misc
+
+- name: User tasks
+  import_tasks: users.yml
+  tags:
+    - common_config_users
+
+- name: Locale tasks
+  import_tasks: locale.yml
+  tags:
+    - common_config_locale

@@ -1,0 +1,43 @@
+- name: Update repos and install useful packages
+  apt:
+    update_cache: true
+    package: "{{ common_config_mandatory_packages }}"
+
+- name: Uninstall unwanted packages
+  apt:
+    package: "{{ common_config_unwanted_packages }}"
+    state: absent
+    purge: true
+    autoremove: true
+
+- name: Set up unattended-upgrades configuration
+  copy:
+    src: files/unattended_upgrades
+    dest: "/etc/apt/apt.conf.d/50unattended-upgrades"
+  notify: Restart unattended-upgrades.service
+
+- name: Check if host is a VM
+  lineinfile:
+    dest: /sys/devices/virtual/dmi/id/sys_vendor
+    line: "QEMU"
+  register: virtual
+  check_mode: true
+  failed_when: (virtual is changed) or (virtual is failed)
+  ignore_errors: true
+
+- name: Install QEMU guest agent
+  apt:
+    package: qemu-guest-agent
+    state: latest
+  notify:
+    - Enable QEMU guest agent service
+    - Start QEMU guest agent
+  when: virtual is defined and virtual is succeeded
+
+- name: apt autoremove
+  apt:
+    autoremove: true
+
+- name: apt clean
+  apt:
+    clean: true

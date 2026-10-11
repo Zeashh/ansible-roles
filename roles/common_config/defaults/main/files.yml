@@ -1,0 +1,7 @@
+# Custom paths for files in  directory
+common_config_path_bash_logout: "bash_logout"
+common_config_path_bashrc: "bashrc"
+common_config_path_htoprc: "htoprc"
+common_config_path_sshd_config_other: "sshd_config_other"
+common_config_path_sshd_config_proxmox: "sshd_config_proxmox"
+common_config_path_unattended_upgrades: "unattended_upgrades"

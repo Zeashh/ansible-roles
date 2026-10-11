@@ -1,0 +1,45 @@
+# Disabling unnecessary services
+
+- name: Populate service facts
+  service_facts:
+
+- name: Disable unnecessary services
+  service:
+    name: "{{ item }}"
+    state: stopped
+    enabled: false
+  when: item in services
+  loop: "{{ common_config_services_to_disable }}"
+  notify: Reset list of failed services
+
+# SSH
+
+- name: Update SSH config
+  copy:
+    src: files/sshd_config_proxmox
+    dest: /etc/ssh/sshd_config
+  notify: Restart SSH server
+  when: inventory_hostname in groups[common_config_pve_group] + groups[common_config_pbs_group]
+
+- name: Update SSH config
+  copy:
+    src: files/sshd_config_other
+    dest: /etc/ssh/sshd_config
+  notify: Restart SSH server
+  when: inventory_hostname not in groups[common_config_pve_group] + groups[common_config_pbs_group]
+
+# Other
+
+- name: Edit /etc/hosts
+  lineinfile:
+    path: /etc/hosts
+    regexp: 127.0.1.1
+    line: "127.0.1.1       {{ ansible_hostname }}.{{ common_config_local_domain }}   {{ ansible_hostname }}"
+
+- name: Disable sleep on closed lid
+  lineinfile:
+    path: "/etc/systemd/logind.conf"
+    regexp: "HandleLidSwitch"
+    line: "HandleLidSwitch=ignore"
+  notify: Restart systemd-logind
+  when: laptop is defined

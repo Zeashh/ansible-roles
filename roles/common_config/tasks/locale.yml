@@ -1,0 +1,4 @@
+- name: Ensure the desired system locale exists
+  community.general.locale_gen:
+    name: "{{ common_config_system_locale }}"
+    state: present

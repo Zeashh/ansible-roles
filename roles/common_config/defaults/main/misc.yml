@@ -1,0 +1,11 @@
+common_config_local_domain: local.domain.com
+
+common_config_services_to_disable:
+  - ifupdown-wait-online
+  - ifupdown-wait-online.service
+  - systemd-networkd
+  - systemd-networkd.service
+
+common_config_system_locale: "en_US.UTF-8"
+
+common_config_debian_suite: "trixie"

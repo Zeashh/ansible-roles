@@ -1,0 +1,18 @@
+- name: Download fake subscription
+  get_url:
+    url: "{{ subscription_url }}"
+    dest: "/root/fake-subscription.deb"
+
+- name: Install fake subscription
+  shell: dpkg -i "/root/fake-subscription.deb"
+
+- name: Prevent fake key from being checked against Proxmox servers
+  lineinfile:
+    path: "/etc/hosts"
+    insertafter: EOF
+    line: "127.0.0.1 {{ subscription_check_url }}"
+
+- name: Fake subscription cleanup
+  file:
+    path: "/root/fake-subscription.deb"
+    state: absent

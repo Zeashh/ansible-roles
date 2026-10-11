@@ -1,0 +1,21 @@
+common_config_mandatory_packages:
+  - ssh
+  - htop
+  - vim
+  - git
+  - unattended-upgrades
+  - nfs-common
+  - sudo
+  - curl
+  - wget
+  - ca-certificates
+  - lsb-release
+  - libsensors5
+  - lsof
+  - gpg
+  - prometheus-node-exporter
+  - fastfetch
+  - tree
+
+common_config_unwanted_packages:
+  - openipmi

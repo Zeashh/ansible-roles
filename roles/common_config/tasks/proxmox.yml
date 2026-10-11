@@ -1,0 +1,56 @@
+- name: Modify PBS repositories
+  block:
+    - name: Remove enterprise PBS repository
+      deb822_repository:
+        name: pbs-enterprise
+        state: absent
+    - name: Add no-subscription PBS repository
+      deb822_repository:
+        name: pbs-no-subscription
+        types: deb
+        uris: http://download.proxmox.com/debian/pbs
+        suites: "{{ common_config_debian_suite }}"
+        components:
+          - pbs-no-subscription
+        signed_by: /usr/share/keyrings/proxmox-archive-keyring.gpg
+  when: inventory_hostname in groups[common_config_pbs_group]
+
+- name: Modify PVE repositories
+  block:
+    - name: Remove enterprise PVE repository
+      deb822_repository:
+        name: pve-enterprise
+        state: absent
+    - name: Remove enterprise Ceph repository
+      deb822_repository:
+        name: ceph
+        state: absent
+    - name: Add no-subscription PVE repository
+      deb822_repository:
+        name: pve-no-subscription
+        types: deb
+        uris: http://download.proxmox.com/debian/pve
+        suites: "{{ common_config_debian_suite }}"
+        components:
+          - pve-no-subscription
+        signed_by: /usr/share/keyrings/proxmox-archive-keyring.gpg
+  when: inventory_hostname in groups[common_config_pve_group]
+
+- name: Gather package facts
+  package_facts:
+    manager: auto
+
+- name: Check if fake subscription is installed
+  import_tasks: set-up-fake-subscription.yml
+  when: "'pve-fake-subscription' not in ansible_facts.packages"
+
+- name: Update repos and install useful packages
+  apt:
+    update_cache: true
+    package: "{{ common_config_proxmox_mandatory_packages }}"
+
+- name: Uninstall unwanted packages
+  apt:
+    package: "{{ common_config_proxmox_unwanted_packages }}"
+    state: absent
+    purge: true

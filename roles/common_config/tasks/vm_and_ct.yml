@@ -1,0 +1,4 @@
+- name: Update repos and install useful packages (VM/LXC only)
+  apt:
+    update_cache: true
+    package: "{{ common_config_vm_and_ct_mandatory_packages }}"

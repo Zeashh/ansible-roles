@@ -1,0 +1,29 @@
+- name: Configure HTOP for common_config_system user
+  block:
+    - name: Create config directory
+      file:
+        path: "/home/{{ common_config_system_user }}/.config/htop"
+        state: directory
+        owner: "{{ common_config_system_user }}"
+        group: "{{ common_config_system_user }}"
+      no_log: true
+    
+    - name: Update config
+      copy:
+        src: files/htoprc
+        dest: "/home/{{ common_config_system_user }}/.config/htop/htoprc"
+        owner: "{{ common_config_system_user }}"
+        group: "{{ common_config_system_user }}"
+      no_log: true
+  when: inventory_hostname not in groups['pve_nodes'] + groups['pbs_nodes']
+
+- name: Configure HTOP for root user
+  block:
+    - name: Create config directory
+      file:
+        path: /root/.config/htop
+        state: directory
+    - name: Update config
+      copy:
+        src: files/htoprc
+        dest: /root/.config/htop/htoprc
