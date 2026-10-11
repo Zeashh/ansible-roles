@@ -1,6 +1,11 @@
+# File/template paths
+k3s_install_template_99_k3s_sysctl_path: "99-k3s-sysctl.conf.j2"
+
+# Inventory groups
 k3s_install_control_plane_group: "k3s_control_plane"
 k3s_install_node_group: "k3s_node"
 
+# General settings
 k3s_install_version: "v1.37.1+k3s1"
 k3s_install_token: ""
 k3s_install_endpoint_domain: "k3s.local.domain.com"
@@ -8,27 +13,22 @@ k3s_install_endpoint_port: "6443"
 k3s_install_endpoint_scheme: "https"
 k3s_install_cluster_init: false
 
+# Install arguments
 k3s_install_flannel_backend: "wireguard-native"
-
 k3s_install_node_taints:
   - "CriticalAddonsOnly=true:NoExecute"
-
 k3s_install_kubelet_args:
   - "node-status-update-frequency=4s"
   - "resolv-conf=/etc/kube-resolv.conf"
-
 k3s_install_kcm_args:
   - "node-monitor-period=4s"
   - "node-monitor-grace-period=16s"
   - "horizontal-pod-autoscaler-sync-period=10s"
-
 k3s_install_kapi_args:
   - "default-not-ready-toleration-seconds=10"
   - "default-unreachable-toleration-seconds=10"
-
 k3s_install_kscheduler_args:
   - "bind-address=0.0.0.0"
-
 k3s_install_etcd_snapshot_schedule: "0 15,21 * * *"
 k3s_install_etcd_snapshot_retention: 2
 k3s_install_etcd_metrics: true
