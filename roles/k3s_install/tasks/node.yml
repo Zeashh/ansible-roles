@@ -1,0 +1,9 @@
+- name: Run the installation script to add a node to the cluster
+  shell: >-
+    sudo curl -sfL https://get.k3s.io |
+    K3S_URL={{ k3s_install_endpoint_scheme }}://{{ k3s_install_endpoint_domain }}:{{ k3s_install_endpoint_port }}
+    INSTALL_K3S_VERSION={{ k3s_install_version }}
+    K3S_TOKEN={{ k3s_install_token }}
+    sh -
+  args:
+    executable: /usr/bin/bash

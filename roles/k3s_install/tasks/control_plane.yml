@@ -1,0 +1,49 @@
+- name: Run the K3s installation script to initialize the cluster
+  shell: >-
+    curl -sfL https://get.k3s.io |
+    K3S_TOKEN={{ k3s_install_token }}
+    INSTALL_K3S_VERSION={{ k3s_install_version }}
+    sh -s - server
+    --flannel-backend {{ k3s_install_flannel_backend }}
+    {{ k3s_install_node_taints | map('quote') | map('regex_replace', '^', '--node-taint ') | join(' ') }}
+    {{ k3s_install_kubelet_args | map('quote') | map('regex_replace', '^', '--kubelet-arg ') | join(' ') }}
+    {{ k3s_install_kcm_args | map('quote') | map('regex_replace', '^', '--kube-controller-manager-arg ') | join(' ') }}
+    {{ k3s_install_kapi_args | map('quote') | map('regex_replace', '^', '--kube-apiserver-arg ') | join(' ') }}
+    {{ k3s_install_kscheduler_args | map('quote') | map('regex_replace', '^', '--kube-scheduler-arg ') | join(' ') }}
+    --etcd-snapshot-schedule-cron {{ k3s_install_etcd_snapshot_schedule }}
+    --etcd-snapshot-retention {{ k3s_install_etcd_snapshot_retention }}
+    --etcd-expose-metrics {{ k3s_install_etcd_metrics }}
+    --tls-san {{ inventory_hostname }}
+    --tls-san {{ ansible_hostname }}
+    --tls-san {{ k3s_install_endpoint_domain }}
+    --cluster-init
+  args:
+    executable: /usr/bin/bash
+  when: k3s_install_cluster_init_runtime | bool
+
+- name: Run the K3s installation script
+  shell: >-
+    curl -sfL https://get.k3s.io |
+    K3S_TOKEN={{ k3s_install_token }}
+    INSTALL_K3S_VERSION={{ k3s_install_version }}
+    sh -s - server
+    --flannel-backend {{ k3s_install_flannel_backend }}
+    {{ k3s_install_node_taints | map('quote') | map('regex_replace', '^', '--node-taint ') | join(' ') }}
+    {{ k3s_install_kubelet_args | map('quote') | map('regex_replace', '^', '--kubelet-arg ') | join(' ') }}
+    {{ k3s_install_kcm_args | map('quote') | map('regex_replace', '^', '--kube-controller-manager-arg ') | join(' ') }}
+    {{ k3s_install_kapi_args | map('quote') | map('regex_replace', '^', '--kube-apiserver-arg ') | join(' ') }}
+    {{ k3s_install_kscheduler_args | map('quote') | map('regex_replace', '^', '--kube-scheduler-arg ') | join(' ') }}
+    --etcd-snapshot-schedule-cron {{ k3s_install_etcd_snapshot_schedule }}
+    --etcd-snapshot-retention {{ k3s_install_etcd_snapshot_retention }}
+    --etcd-expose-metrics {{ k3s_install_etcd_metrics }}
+    --tls-san {{ inventory_hostname }}
+    --tls-san {{ ansible_hostname }}
+    --tls-san {{ k3s_install_endpoint_domain }}
+    --server {{ k3s_install_endpoint_scheme }}://{{ k3s_install_endpoint_domain }}:{{ k3s_install_endpoint_port }}
+  args:
+    executable: /usr/bin/bash
+  when: not ( k3s_install_cluster_init_runtime | bool )
+
+- name: Wait for installation
+  pause:
+    seconds: 15
