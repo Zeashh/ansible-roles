@@ -1,0 +1,11 @@
+regions:
+  999:
+    regionid: 999
+    regioncode: headscale
+    regionname: "Headscale embedded DERP"
+    nodes:
+      - name: 999a
+        regionid: 999
+        hostname: {{ headscale_domain }}
+        stunport: 3478
+        derpport: 443

@@ -1,0 +1,43 @@
+- name: Check if Headscale is installed
+  package_facts:
+    manager: apt
+
+- name: Install Headscale
+  apt:
+    deb: "{{ headscale_download_url }}"
+  when: "'headscale' not in ansible_facts.packages"
+
+- name: Copy over Headscale's config
+  template:
+    src: "{{ headscale_template_headscale_config }}"
+    dest: /etc/headscale/config.yaml
+    mode: '0664'
+    owner: 'root'
+    group: 'root'
+  notify:
+    - Restart Headscale
+
+- name: Copy over Headscale's ACL
+  copy:
+    src: "{{ headscale_file_acl }}"
+    dest: /etc/headscale/acl.json
+    mode: '0664'
+    owner: 'root'
+    group: 'root'
+  notify:
+    - Restart Headscale
+
+- name: Copy over Headscale's DERP config
+  template:
+    src: "{{ headscale_template_derp }}"
+    dest: /etc/headscale/derp.yaml
+    mode: '0664'
+    owner: 'root'
+    group: 'root'
+  notify:
+    - Restart Headscale
+
+- name: Make sure Headscale is running
+  systemd_service:
+    name: headscale
+    state: started

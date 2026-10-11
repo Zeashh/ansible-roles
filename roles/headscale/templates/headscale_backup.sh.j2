@@ -1,0 +1,48 @@
+#!/bin/bash
+
+# Exit in case of any error
+set -Eeuo pipefail
+trap 'logger -t headscale-backup "Fatal error at line $LINENO, refusing to run any more commands" >&2' ERR
+
+# Variables
+_headscale_host={{ headscale_public_ip }}
+_headscale_ssh_port={{ headscale_headscale_ssh_port }}
+_timestamp=$(date +%Y%m%d%H%M%S)
+_remote_backup_tmp=headscaleBackup$_timestamp
+_remote_backup_tmp_path=/tmp/$_remote_backup_tmp
+_backup_dest=/home/{{ headscale_ssh_remote_user }}/headscale_backups
+_keep_last={{ headscale_keep_last }}
+
+# Prepare backup on Headscale host
+ssh -t \
+    -o BatchMode=yes \
+    -i {{ headscale_jump_ssh_key_path }} \
+    -p $_headscale_ssh_port \
+    {{ headscale_ssh_remote_user }}@$_headscale_host \
+    sudo {{ headscale_file_headscale_backup_prepare }} prepare $_remote_backup_tmp_path
+
+# Copy prepared backup to jump host
+mkdir -p $_backup_dest
+scp -r \
+    -o BatchMode=yes \
+    -i {{ headscale_jump_ssh_key_path }} \
+    -P $_headscale_ssh_port \
+    {{ headscale_ssh_remote_user }}@$_headscale_host:${_remote_backup_tmp_path}.tgz \
+    $_backup_dest/${_remote_backup_tmp}.tgz
+
+# Remove prepared backup from Headscale host
+ssh -t \
+    -o BatchMode=yes \
+    -i {{ headscale_jump_ssh_key_path }} \
+    -p $_headscale_ssh_port \
+    {{ headscale_ssh_remote_user }}@$_headscale_host \
+    sudo {{ headscale_backup_prepare_script_path }} delete $_remote_backup_tmp_path
+
+_n_backups=$(ls "$_backup_dest" | wc -l)
+if [[ $_n_backups > $_keep_last ]]; then
+    cd "$_backup_dest"
+    _marked_for_deletion=$((_n_backups - _keep_last))
+    rm -f $(ls -t $_backup_dest | tail -$_marked_for_deletion)
+fi
+
+logger -t headscale-backup "Backup finished with no errors"

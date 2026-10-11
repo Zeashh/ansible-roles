@@ -1,0 +1,46 @@
+- name: Generate SSH key
+  community.crypto.openssh_keypair:
+    path: "{{ headscale_jump_ssh_key_path }}"
+    type: ed25519
+    size: 4096
+    regenerate: full_idempotence
+    owner: "{{ headscale_ssh_remote_user }}"
+    group: "{{ headscale_ssh_remote_user }}"
+  when: headscale_jump_generate_ed25519 | bool and headscale_jumphost_group in group_names
+
+- name: Fetch public key (base64 encoded)
+  slurp:
+    src: "{{ headscale_jump_ssh_key_path }}.pub"
+  register: headscale_ssh_public_key_base64
+  when: headscale_jumphost_group in group_names
+
+- name: Store public key in variable
+  set_fact:
+    headscale_ssh_public_key: "{{ hostvars[groups[headscale_jumphost_group][0]].headscale_ssh_public_key_base64['content'] | b64decode }}"
+  when: headscale_headscale_group in group_names
+
+- name: Create authorized_keys file if it doesn't exist
+  file:
+    path: "{{ headscale_headscale_authorized_keys }}"
+    state: touch
+    mode: "0600"
+    owner: "{{ headscale_ssh_remote_user }}"
+    group: "{{ headscale_ssh_remote_user }}"
+  when: headscale_headscale_group in group_names
+
+- name: Place public key on Headscale host
+  lineinfile:
+    path: "{{ headscale_headscale_authorized_keys }}"
+    line: "{{ headscale_ssh_public_key }}"
+    regexp: "^{{ headscale_ssh_public_key }}$"
+    state: present
+  when: headscale_headscale_group in group_names
+
+- name: Copy over jump host's ssh config
+  template:
+    src: "{{ headscale_template_ssh_config }}"
+    dest: "{{ /home/{{ headscale_ssh_remote_user }}/.ssh/config }}"
+    mode: '0600'
+    owner: "{{ headscale_ssh_remote_user }}"
+    group: "{{ headscale_ssh_remote_user }}"
+  when: headscale_jumphost_group in group_names

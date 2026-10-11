@@ -1,0 +1,94 @@
+- name: Install snap
+  apt:
+    name: snapd
+  register: snapd_install
+
+- name: Enable classic snap support
+  file:
+    src: /var/lib/snapd/snap
+    dest: /snap
+    state: link
+  when: ansible_facts.os_family != "Debian"
+
+- name: Update snap after install
+  shell: |
+    snap install core
+    snap refresh core
+  changed_when: true
+  failed_when: false
+  when: snapd_install is changed
+
+- name: Install certbot with Snap
+  community.general.snap:
+    name:
+      - certbot
+    classic: true
+
+- name: Necessary patch for plugin
+  shell: snap set certbot trust-plugin-with-root=ok
+
+- name: Install certbot Cloudflare plugin with Snap
+  community.general.snap:
+    name:
+      - certbot-dns-cloudflare
+    classic: true
+
+- name: Make secrets directory
+  file:
+    name: "{{ headscale_secrets_dir }}"
+    state: directory
+    mode: '0700'
+    owner: 'root'
+    group: 'root'
+
+- name: Template cloudflare secret
+  template:
+    src: "{{ headscale_template_cloudflare_secret }}"
+    dest: "{{ headscale_remote_cf_secrets_file }}"
+    mode: '0600'
+    owner: 'root'
+    group: 'root'
+
+- name: Fetch new certificate if necessary
+  shell: |
+    certbot certonly \
+      --noninteractive \
+      --agree-tos \
+      --email {{ headscale_letsencrypt_email }} \
+      --preferred-challenges dns \
+      --dns-cloudflare \
+      --dns-cloudflare-credentials {{ headscale_remote_cf_secrets_file }} \
+      --dns-cloudflare-propagation-seconds 300 \
+      --keep-until-expiring \
+      -d {{ headscale_domain }}
+  args:
+    creates: "{{ headscale_cert_path }}"
+  notify: Run copy_cert script after new certificate is made
+
+- name: Ensure certificate directory exists
+  file:
+    path: "{{ headscale_cert_destination_path }}"
+    state: directory
+    owner: 'headscale'
+    group: 'headscale'
+    mode: '0750'
+
+- name: Template renewal hook script
+  template:
+    src: "{{ headscale_template_copy_certs }}"
+    dest: /etc/letsencrypt/renewal-hooks/post/copy_certs.sh
+    mode: '755'
+    owner: 'root'
+    group: 'root'
+
+- name: Install cron
+  apt:
+    name: cron
+
+- name: Set up cronjob for renewal
+  cron:
+    name: Certbot renewal
+    job: /bin/bash -lc 'certbot -q renew'
+    minute: '30'
+    hour: '5'
+    user: 'root'

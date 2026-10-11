@@ -1,0 +1,42 @@
+- name: Make scripts directory
+  file:
+    path: "{{ headscale_scripts_dir }}"
+    state: directory
+    mode: '0755'
+    owner: "{{ headscale_ssh_remote_user }}"
+    group: "{{ headscale_ssh_remote_user }}"
+
+- name: Copy over backup preparation script
+  copy:
+    src: "{{ headscale_file_headscale_backup_prepare }}"
+    dest: "{{ headscale_backup_prepare_script_path }}"
+    mode: '0755'
+    owner: "root"
+    group: "root"
+  when: headscale_headscale_group in group_names
+
+- name: "Allow {{ headscale_ssh_remote_user }} on Headscale host to run the script with sudo without password"
+  community.general.sudoers:
+    name: allow-backup-preparation
+    state: present
+    user: "{{ headscale_ssh_remote_user }}"
+    commands: "{{ headscale_backup_prepare_script_path }}"
+  when: headscale_headscale_group in group_names
+
+- name: Copy over backup script
+  template:
+    src: "{{ headscale_template_headscale_backup }}"
+    dest: "{{ headscale_backup_script_path }}"
+    mode: '0774'
+    owner: "{{ headscale_ssh_remote_user }}"
+    group: "{{ headscale_ssh_remote_user }}"
+  when: headscale_jumphost_group in group_names
+
+- name: Add backup script cronjob
+  cron:
+    name: "Headscale backup"
+    minute: "0"
+    hour: "{{ headscale_backup_hour }}"
+    job: "{{ headscale_backup_script_path }}"
+    user: "{{ headscale_ssh_remote_user }}"
+  when: headscale_jumphost_group in group_names
