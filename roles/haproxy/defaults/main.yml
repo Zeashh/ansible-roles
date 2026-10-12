@@ -1,0 +1,11 @@
+# Role file/template paths
+haproxy_file_certificate_list: "certificate-list.txt"
+haproxy_file_copy_certs: "copy-certs.sh"
+haproxy_file_cors: "cors.lua"
+haproxy_file_error_pages: "error-pages"
+haproxy_template_certbot_helper: "certbot-helper.sh.j2"
+haproxy_template_haproxy_cfg: "haproxy.cfg.j2"
+
+# Miscellaneous
+haproxy_certbot_email: john@mail.com
+haproxy_ip: 10.0.0.10

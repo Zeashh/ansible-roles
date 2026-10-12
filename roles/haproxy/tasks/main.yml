@@ -1,0 +1,115 @@
+- name: Install HAProxy
+  apt:
+    package: haproxy
+    update_cache: true
+  tags:
+    - haproxy
+
+- name: Install certbot and Cloudflare plugin
+  apt:
+    package:
+      - certbot
+      - python3-certbot-dns-cloudflare
+  tags:
+    - haproxy
+
+- name: Create HAProxy config directory
+  file:
+    path: /etc/haproxy
+    state: directory
+    mode: 0770
+    owner: root
+    group: root
+  tags:
+    - haproxy
+
+- name: Create certificate directory
+  file:
+    path: /etc/haproxy/certificates
+    state: directory
+    mode: 0770
+    owner: root
+    group: root
+  tags:
+    - haproxy
+
+- name: Create library directory
+  file:
+    path: /etc/haproxy/lib
+    state: directory
+    mode: 0770
+    owner: root
+    group: root
+  tags:
+    - haproxy
+
+- name: Create scripts directory
+  file:
+    path: /root/scripts
+    state: directory
+    mode: 0770
+    owner: root
+    group: root
+  tags:
+    - haproxy
+
+- name: Upload certificate helper script
+  template:
+    src: "{{ haproxy_template_certbot_helper }}"
+    dest: /root/scripts/certbot-helper.sh
+    mode: 0770
+    owner: root
+    group: root
+  tags:
+    - haproxy
+
+- name: Upload certificate copy script
+  copy:
+    src: "{{ haproxy_file_copy_certs }}"
+    dest: /etc/letsencrypt/renewal-hooks/post/copy-certs.sh
+    mode: "0755"
+    owner: root
+    group: root
+  tags:
+    - haproxy
+
+- name: Upload Lua CORS library
+  copy:
+    src: "{{ haproxy_file_cors }}"
+    dest: /etc/haproxy/lib/cors.lua
+    mode: "0660"
+    owner: root
+    group: root
+  tags:
+    - haproxy
+
+- name: Upload error pages
+  copy:
+    src: "{{ haproxy_file_error_pages }}"
+    dest: /etc/haproxy/
+    mode: "0660"
+    owner: root
+    group: root
+  tags:
+    - haproxy
+
+- name: Upload certificate list
+  copy:
+    src: "{{ haproxy_file_certificate_list }}"
+    dest: /etc/haproxy/
+    mode: "0660"
+    owner: root
+    group: root
+  tags:
+    - haproxy
+
+- name: Upload HAProxy config
+  template:
+    src: "{{ haproxy_template_haproxy_cfg }}"
+    dest: /etc/haproxy/haproxy.cfg
+    mode: "0660"
+    owner: root
+    group: root
+  notify: Reload HAProxy
+  tags:
+    - haproxy

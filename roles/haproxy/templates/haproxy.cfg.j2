@@ -1,0 +1,130 @@
+#---------------------------------------------------------------------
+# Global settings
+#---------------------------------------------------------------------
+
+global
+  log stdout syslog notice
+  stats socket /var/run/haproxy.sock mode 600 level admin
+  lua-load /etc/haproxy/lib/cors.lua
+  lua-prepend-path /usr/lib/crowdsec/lua/haproxy/?.lua
+  lua-load /usr/lib/crowdsec/lua/haproxy/crowdsec.lua # path to crowdsec.lua
+  setenv CROWDSEC_CONFIG /etc/crowdsec/bouncers/crowdsec-haproxy-bouncer.conf
+
+  httpclient.ssl.verify none
+  httpclient.resolvers.id cloudflare
+
+
+#---------------------------------------------------------------------
+# Common defaults that all the 'listen', 'backend' and 'frontend'
+# sections will use if not designated in their block
+#---------------------------------------------------------------------
+
+defaults
+  log                       global
+  maxconn                   2000
+  timeout client            3600s
+  timeout server            3600s
+  timeout connect           5s
+  timeout tunnel            1h
+  timeout http-request      5s
+  default-server resolvers  host-dns
+  errorfiles                default-errorfiles
+
+#---------------------------------------------------------------------
+# Resolvers
+#---------------------------------------------------------------------
+
+resolvers host-dns
+  parse-resolv-conf
+  hold valid 120s
+  resolve_retries 3
+  timeout resolve 1s
+  timeout retry 1s
+
+resolvers cloudflare
+  nameserver ns1 8.8.8.8:53
+
+#---------------------------------------------------------------------
+# Userlists
+#---------------------------------------------------------------------
+
+userlist common-creds
+  user john password MKPASSWD_RESULT
+
+#---------------------------------------------------------------------
+# HTTP error pages
+#---------------------------------------------------------------------
+
+http-errors default-errorfiles
+  errorfile 404 /etc/haproxy/error-pages/404.http
+
+#---------------------------------------------------------------------
+# Dedicated stats page
+#---------------------------------------------------------------------
+
+listen stats-dashboard
+  mode http
+  option httplog
+  bind :22222
+  stats enable
+  stats uri /
+  stats realm Haproxy\ Statistics
+  stats refresh 3s
+
+#---------------------------------------------------------------------
+# Frontends
+#---------------------------------------------------------------------
+
+frontend https
+  bind {{ haproxy_ip }}:80
+  bind {{ haproxy_ip }}:443 ssl crt-list /etc/haproxy/certificate-list.txt
+
+  log stdout local0 info
+  mode http
+  option httplog
+  option forwardfor
+  
+  # Crowdsec configuration
+  stick-table type ip size 10k expire 30m # declare a stick table to cache captcha verifications
+  http-request lua.crowdsec_allow # action to identify crowdsec remediation
+  http-request track-sc0 src if { var(req.remediation) -m str "captcha-allow" } # cache captcha allow decision 
+  http-request redirect location %[var(req.redirect_uri)] if { var(req.remediation) -m str "captcha-allow" } # redirect to initial url
+  http-request use-service lua.reply_captcha if { var(req.remediation) -m str "captcha" } # serve captcha template if remediation is captcha
+  http-request use-service lua.reply_ban if { var(req.remediation) -m str "ban" } # serve ban template if remediation is ban
+
+  # Redirect away from FQDN
+  http-request redirect code 301 location https://%[hdr(host),regsub('\.$','')]%[capture.req.uri] unless { hdr(host) -m reg '^.*[^.]$' }
+
+  # HTTP to HTTPS redirect, HSTS
+  http-request redirect scheme https code 301 unless { ssl_fc }
+  http-response set-header Strict-Transport-Security "max-age=16000000; includeSubDomains; preload;"
+
+  http-response return status 404 default-errorfiles if { status 404 }
+
+  option forwardfor header X-Real-IP
+  http-request set-header X-Real-IP %[src]
+
+  default_backend kube-http
+
+#---------------------------------------------------------------------
+# Backends
+#---------------------------------------------------------------------
+
+backend kube-http
+  mode http
+  http-request set-header X-Forwarded-Proto https
+  http-request set-header X-Forwarded-Port 443
+  server k8s-worker-0 10.0.0.20:30000 check inter 5s rise 2 fall 2
+  server k8s-worker-1 10.0.0.21:30000 check inter 5s rise 2 fall 2
+
+backend captcha-verifier
+  mode http
+  server turnstile-verifier challenges.cloudflare.com:443 check inter 5s resolvers host-dns resolve-prefer ipv4
+
+backend crowdsec
+  server crowdsec 127.0.0.1:8080 check inter 5s
+
+#---------------------------------------------------------------------
+# EOF
+#---------------------------------------------------------------------
+

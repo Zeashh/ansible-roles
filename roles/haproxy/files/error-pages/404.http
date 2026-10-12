@@ -1,0 +1,26 @@
+HTTP/1.1 404 Not Found
+Cache-Control: no-cache
+Connection: close
+Content-Type: text/html
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>404 Not Found</title>
+  <style>
+    html, body { height: 100%; margin: 0; }
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: black;
+      color: #aaa;
+      font: 48px sans-serif;
+    }
+  </style>
+</head>
+<body>404</body>
+</html>
+
