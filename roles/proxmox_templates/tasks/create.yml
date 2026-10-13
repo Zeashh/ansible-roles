@@ -38,13 +38,14 @@
         searchdomains: "{{ proxmox_templates_template.searchdomains }}"
         sshkeys: "{{ proxmox_templates_template.sshkeys }}"
     - name: Attach downloaded disk to VM
-      vmid: "{{ proxmox_templates_template.id }}"
-      disk: scsi0
-      storage: "{{ proxmox_templates_template.storage }}"
-      import_from: "{{ proxmox_templates_vm_disk.dest }}"
-      format: "{{ proxmox_templates_template.disk_format }}"
-      size: "{{ proxmox_templates_template.disk_size }}" 
-      state: present
+      community.proxmox.proxmox_disk:
+        vmid: "{{ proxmox_templates_template.id }}"
+        disk: scsi0
+        storage: "{{ proxmox_templates_template.storage }}"
+        import_from: "{{ proxmox_templates_vm_disk.dest }}"
+        format: "{{ proxmox_templates_template.disk_format }}"
+        size: "{{ proxmox_templates_template.disk_size }}" 
+        state: present
     - name: Start VM
       community.proxmox.proxmox_kvm:
         vmid: "{{ proxmox_templates_template.id }}"
@@ -53,6 +54,7 @@
       ansible.builtin.file:
         path: "{{ proxmox_templates_vm_disk.dest }}"
         state: absent
+  delegate_to: localhost
   when: proxmox_templates_template.type == 'vm'
 
 - name: Create and start LXC
@@ -63,6 +65,7 @@
         storage: "{{ proxmox_templates_lxc_template_storage }}"
         content_type: vztmpl
         template: "{{ proxmox_templates_template.disk }}"
+      delegate_to: localhost
     - name: Create and start LXC container
       community.proxmox.proxmox:
         state: started
@@ -85,6 +88,7 @@
         unprivileged: "{{ proxmox_templates_template.unprivileged }}"
         features:
           - nesting=1
+      delegate_to: localhost
     - name: Add local user
       ansible.builtin.command: >
         pct exec {{ proxmox_templates_template.id }} --
@@ -115,3 +119,4 @@
         macro: SSH
         enable: true
         pos: 1
+  delegate_to: localhost
