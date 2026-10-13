@@ -66,14 +66,14 @@
         content_type: vztmpl
         template: "{{ proxmox_templates_template.disk }}"
       delegate_to: localhost
-    - name: Create and start LXC container
+    - name: Create LXC container
       community.proxmox.proxmox:
-        state: started
+        state: present
         vmid: "{{ proxmox_templates_template.id }}"
         node: "{{ proxmox_templates_template.node }}"
         hostname: "{{ proxmox_templates_template.name }}"
-        password: "{{ proxmox_templates_template.password }}"
-        ostemplate: "{{ proxmox_templates_lxc_template_storage }}:{{ proxmox_templates_template.disk }}"
+        password: "{{ proxmox_templates_template.user_password }}"
+        ostemplate: "{{ proxmox_templates_lxc_template_storage }}:vztmpl/{{ proxmox_templates_template.disk }}"
         cores: "{{ proxmox_templates_template.cores }}"
         memory: "{{ proxmox_templates_template.memory }}"
         nameserver: "{{ proxmox_templates_template.nameservers[0] | default(omit) }}"
@@ -83,16 +83,33 @@
           options:
             acl: "1"
         netif:
-          net0: "name=eth0,bridge={{ network_bridge }},ip={{ proxmox_templates_template.ip }}{{ (',gw=' ~ proxmox_templates_template.gateway) if proxmox_templates_template.gateway is defined else '' }}"
+          net0: "name=eth0,bridge={{ proxmox_templates_template.network_bridge }},ip={{ proxmox_templates_template.ip }}{{ (',gw=' ~ proxmox_templates_template.gateway) if proxmox_templates_template.gateway is defined else '' }}"
         timezone: host
         unprivileged: "{{ proxmox_templates_template.unprivileged }}"
         features:
           - nesting=1
       delegate_to: localhost
+    - name: Start LXC container
+      community.proxmox.proxmox:
+        state: started
+        vmid: "{{ proxmox_templates_template.id }}"
     - name: Add local user
       ansible.builtin.command: >
         pct exec {{ proxmox_templates_template.id }} --
         useradd -m -s /usr/bin/bash {{ proxmox_templates_template.user }}
+      delegate_to: "{{ proxmox_templates_template.node }}"
+    - name: Set user password
+      ansible.builtin.command:
+        cmd: "pct exec {{ proxmox_templates_template.id }} -- chpasswd"
+        stdin: "{{ proxmox_templates_template.user }}:{{ proxmox_templates_template.user_password }}"
+      delegate_to: "{{ proxmox_templates_template.node }}"
+      no_log: true
+    - name: Add local user to sudoers
+      ansible.builtin.command: >
+        pct exec {{ proxmox_templates_template.id }} -- sh -c
+        'apt update &&
+        apt install -y sudo &&
+        usermod -aG sudo {{ proxmox_templates_template.user }}'
       delegate_to: "{{ proxmox_templates_template.node }}"
     - name: Add SSH keys to local user
       ansible.builtin.command:

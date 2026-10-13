@@ -37,13 +37,23 @@
         state: touch
       no_log: true
 
-- name: Add management authorized keys
+- name: Add management authorized keys for root user on Proxmox hosts
   authorized_key:
-    user: "{{ ansible_ssh_user }}"
+    user: root
     key: "{{ item }}"
     state: present
   loop: "{{ common_config_management_authorized_ssh_keys }}"
   no_log: true
+  when: inventory_hostname in groups[common_config_pve_group] + groups[common_config_pbs_group]
+
+- name: Add management authorized keys for system user
+  authorized_key:
+    user: "{{ common_config_system_user }}"
+    key: "{{ item }}"
+    state: present
+  loop: "{{ common_config_management_authorized_ssh_keys }}"
+  no_log: true
+  when: inventory_hostname not in groups[common_config_pve_group] + groups[common_config_pbs_group]
 
 - name: Update HTOP config
   import_tasks: htop.yml

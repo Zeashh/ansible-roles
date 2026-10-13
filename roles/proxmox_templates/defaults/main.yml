@@ -41,9 +41,11 @@ proxmox_templates_proxmox_api: {}
 #   - number of CPU cores
 # memory:
 #   - RAM in MB
+# root_password:
+#   - only applied to LXCs
 # user:
 #   - username of local user in template
-# password:
+# user_password:
 #   - password of local user in template
 # network_bridge:
 #   - Proxmox node's network bridge to be used
@@ -75,8 +77,9 @@ proxmox_templates_template:
   disk_size: 16
   cores: 2
   memory: 2048
+  root_password: root123
   user: john
-  password: john123
+  user_password: john123
   network_bridge: vmbr0
   ip: 10.0.0.70/24
   gateway: 10.0.0.1
