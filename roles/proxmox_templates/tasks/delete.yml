@@ -2,10 +2,12 @@
   community.proxmox.proxmox_kvm:
     vmid: "{{ proxmox_templates_template.id }}"
     state: absent
+  delegate_to: localhost
   when: proxmox_templates_template.type == 'vm'
 
 - name: Delete existing LXC template
   community.proxmox.proxmox:
     vmid: "{{ proxmox_templates_template.id }}"
     state: absent
+  delegate_to: localhost
   when: proxmox_templates_template.type == 'lxc'
