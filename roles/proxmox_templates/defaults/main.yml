@@ -1,0 +1,89 @@
+## General info:
+# - If you need multiple templates, define a list of them and loop over it with include_role, the reason for this design decision is that it allows you to configure the VM/LXC before turning it into a template by filtering task files in include_role
+# - Template comes with firewall enabled (only SSH port open)
+
+proxmox_templates_vm_disk_tmp_dir: "/tmp"
+proxmox_templates_lxc_template_storage: "local"
+
+## Define environment variables here or set them in the execution environment
+proxmox_templates_proxmox_api: {}
+# PROXMOX_HOST: 
+# PROXMOX_PORT:
+# PROXMOX_USER: 
+# PROXMOX_TOKEN_ID: 
+# PROXMOX_TOKEN_SECRET
+
+## Parameters
+# id:
+#   - DESTRUCTIVE!! It's the exact ID used by existing and new template instances (old will be deleted, new created in its place)
+# node:
+#   - node where template will be placed
+# name:
+#   - template name
+# ostype:
+#   - type of OS (only required for VMs), one from list: https://docs.ansible.com/projects/ansible/latest/collections/community/proxmox/proxmox_kvm_module.html#parameter-ostype
+# storage:
+#   - storage where template will be placed
+# type:
+#   - vm or lxc
+# unprivileged:
+#   - true/false
+#   - applies only to LXC
+# disk:
+#   - VM disks are downloaded from the provided URL and attached directly to the VM template as the primary boot disk
+#   - LXC templates (from which the boot volume is created) are downloaded from Proxmox's official repository (http://download.proxmox.com/images/system); the exact template name must be specified
+# disk_format:
+#   - raw, qcow2, ...
+#   - dependent on target storage
+# disk_size:
+#   - disk size in GB
+# cores:
+#   - number of CPU cores
+# memory:
+#   - RAM in MB
+# user:
+#   - username of local user in template
+# password:
+#   - password of local user in template
+# network_bridge:
+#   - Proxmox node's network bridge to be used
+# ip:
+#   - dhcp or static IP (CIDR)
+# gateway:
+#   - static gateway to go along side static IP
+# nameservers:
+#   - list of nameservers, only first applied for LXCs
+#   - drop to use host settings
+# searchdomains:
+#   - list of nameservers, only first applied for LXCs
+#   - drop to use host settings
+# sshkeys:
+#   - list of public SSH keys to be added to the template
+#   - only first applied for LXCs
+
+# Example
+proxmox_templates_template:
+  id: 10000
+  node: proxmox-1
+  name: debian
+  ostype: l26
+  type: lxc
+  unprivileged: true
+  storage: local
+  disk: "debian-13-standard_13.6-1_amd64.tar.zst"
+  disk_format: raw
+  disk_size: 16
+  cores: 2
+  memory: 2048
+  user: john
+  password: john123
+  network_bridge: vmbr0
+  ip: 10.0.0.70/24
+  gateway: 10.0.0.1
+  nameservers:
+    - 10.0.0.1
+    - 8.8.8.8
+  searchdomains:
+    - domain.com
+  sshkeys:
+    - ""

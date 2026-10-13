@@ -1,0 +1,17 @@
+- name: Delete existing templates
+  import_tasks: delete.yml
+  environment: "{{ proxmox_templates_api }}"
+  tags:
+    - proxmox_templates_delete
+
+- name: Create new VM/LXC
+  import_tasks: create.yml
+  environment: "{{ proxmox_templates_api }}"
+  tags:
+    - proxmox_templates_create
+
+- name: Turn VM/LXC into template
+  import_tasks: template.yml
+  environment: "{{ proxmox_templates_api }}"
+  tags:
+    - proxmox_templates_template

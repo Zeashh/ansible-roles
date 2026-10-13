@@ -1,0 +1,117 @@
+- name: Create and start VM
+  block:
+    - name: Download VM disk
+      ansible.builtin.get_url:
+        url: "{{ proxmox_templates_template.disk }}"
+        dest: "{{ proxmox_templates_vm_disk_tmp_dir }}"
+        owner: root
+        group: root
+        mode: "0640"
+      register: proxmox_templates_vm_disk
+    - name: Create VM (without disk)
+      community.proxmox.proxmox_kvm:
+        vmid: "{{ id }}"
+        node: "{{ node }}"
+        name: "{{ name }}"
+        ostype: "{{ proxmox_templates_template.ostype }}"
+        cores: "{{ proxmox_templates_template.cores }}"
+        memory: "{{ proxmox_templates_template.memory }}"
+        net:
+          net0: "virtio,bridge={{ proxmox_templates_template.network_bridge }},firewall=1"
+        agent: true
+        bios: ovmf
+        efidisk0:
+          storage: "{{ proxmox_templates_template.storage }}"
+          format: "{{ proxmox_templates_template.disk_format }}"
+          efitype: "4m"
+          pre_enrolled_keys: false
+        scsihw: virtio-scsi-single
+        ide:
+          ide0: "{{ proxmox_templates_template.storage }}:cloudinit,format={{ proxmox_templates_template.disk_format }}"
+          ide1: "{{ proxmox_templates_template.storage }}:ide,format={{ proxmox_templates_template.disk_format }}"
+        # Cloud-init settings
+        ciuser: "{{ proxmox_templates_template.user }}"
+        cipassword: "{{ proxmox_templates_template.password }}"
+        ipconfig:
+          net0: "ip={{ proxmox_templates_template.ip }}{{ (',gw=' ~ proxmox_templates_template.gateway) if proxmox_templates_template.gateway is defined else '' }}"
+        nameservers: "{{ proxmox_templates_template.nameservers }}"
+        searchdomains: "{{ proxmox_templates_template.searchdomains }}"
+        sshkeys: "{{ proxmox_templates_template.sshkeys }}"
+    - name: Attach downloaded disk to VM
+      vmid: "{{ proxmox_templates_template.id }}"
+      disk: scsi0
+      storage: "{{ proxmox_templates_template.storage }}"
+      import_from: "{{ proxmox_templates_vm_disk.dest }}"
+      format: "{{ proxmox_templates_template.disk_format }}"
+      size: "{{ proxmox_templates_template.disk_size }}" 
+      state: present
+    - name: Start VM
+      community.proxmox.proxmox_kvm:
+        vmid: "{{ proxmox_templates_template.id }}"
+        state: started
+    - name: Delete temporary VM disk file
+      ansible.builtin.file:
+        path: "{{ proxmox_templates_vm_disk.dest }}"
+        state: absent
+  when: proxmox_templates_template.type == 'vm'
+
+- name: Create and start LXC
+  block:
+    - name: Download LXC template
+      community.proxmox.proxmox_template:
+        node: "{{ proxmox_templates_template.node }}"
+        storage: "{{ proxmox_templates_lxc_template_storage }}"
+        content_type: vztmpl
+        template: "{{ proxmox_templates_template.disk }}"
+    - name: Create and start LXC container
+      community.proxmox.proxmox:
+        state: started
+        vmid: "{{ proxmox_templates_template.id }}"
+        node: "{{ proxmox_templates_template.node }}"
+        hostname: "{{ proxmox_templates_template.name }}"
+        password: "{{ proxmox_templates_template.password }}"
+        ostemplate: "{{ proxmox_templates_lxc_template_storage }}:{{ proxmox_templates_template.disk }}"
+        cores: "{{ proxmox_templates_template.cores }}"
+        memory: "{{ proxmox_templates_template.memory }}"
+        nameserver: "{{ proxmox_templates_template.nameservers[0] | default(omit) }}"
+        disk_volume:
+          storage: "{{ proxmox_templates_template.storage }}"
+          size: "{{ proxmox_templates_template.disk_size }}"
+          options:
+            acl: "1"
+        netif:
+          net0: "name=eth0,bridge={{ network_bridge }},ip={{ proxmox_templates_template.ip }}{{ (',gw=' ~ proxmox_templates_template.gateway) if proxmox_templates_template.gateway is defined else '' }}"
+        timezone: host
+        unprivileged: "{{ proxmox_templates_template.unprivileged }}"
+        features:
+          - nesting=1
+    - name: Add local user
+      ansible.builtin.command: >
+        pct exec {{ proxmox_templates_template.id }} --
+        useradd -m -s /usr/bin/bash {{ proxmox_templates_template.user }}
+      delegate_to: "{{ proxmox_templates_template.node }}"
+    - name: Add SSH keys to local user
+      ansible.builtin.command:
+        cmd: >
+          pct exec {{ proxmox_templates_template.id }} -- sh -c
+          'mkdir -p /home/{{ proxmox_templates_template.user }}/.ssh &&
+          cat > /home/{{ proxmox_templates_template.user }}/.ssh/authorized_keys &&
+          chown -R {{ proxmox_templates_template.user }}:{{ proxmox_templates_template.user }} /home/{{ proxmox_templates_template.user }}/.ssh &&
+          chmod 700 /home/{{ proxmox_templates_template.user }}/.ssh &&
+          chmod 600 /home/{{ proxmox_templates_template.user }}/.ssh/authorized_keys'
+        stdin: "{{ proxmox_templates_template.sshkeys | join('\n') }}"
+      delegate_to: "{{ proxmox_templates_template.node }}"
+  when: proxmox_templates_template.type == 'lxc'
+
+- name: Allow SSH on VM/LXC
+  community.proxmox.proxmox_firewall:
+    state: present
+    level: vm
+    vmid: "{{ proxmox_templates_template.id }}"
+    rules:
+      - comment: Allow SSH
+        type: in
+        action: ACCEPT
+        macro: SSH
+        enable: true
+        pos: 1
