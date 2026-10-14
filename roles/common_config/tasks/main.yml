@@ -32,3 +32,8 @@
   import_tasks: locale.yml
   tags:
     - common_config_locale
+
+- name: Flush handlers
+  ansible.builtin.meta: flush_handlers
+  tags:
+    - common_config_handlers
