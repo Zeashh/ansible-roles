@@ -56,11 +56,6 @@
       community.proxmox.proxmox_kvm:
         vmid: "{{ proxmox_templates_template.id }}"
         state: started
-    - name: Delete temporary VM disk file
-      ansible.builtin.file:
-        path: "{{ proxmox_templates_vm_disk.dest }}"
-        state: absent
-      delegate_to: "{{ proxmox_templates_template.node }}"
   when: proxmox_templates_template.type == 'vm'
 
 - name: Create and start LXC
