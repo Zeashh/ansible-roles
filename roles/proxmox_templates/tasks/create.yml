@@ -8,6 +8,7 @@
         group: root
         mode: "0640"
       register: proxmox_templates_vm_disk
+      delegate_to: "{{ proxmox_templates_template.node }}"
     - name: Create VM (without disk)
       community.proxmox.proxmox_kvm:
         vmid: "{{ id }}"
@@ -55,7 +56,7 @@
       ansible.builtin.file:
         path: "{{ proxmox_templates_vm_disk.dest }}"
         state: absent
-  delegate_to: localhost
+      delegate_to: "{{ proxmox_templates_template.node }}"
   when: proxmox_templates_template.type == 'vm'
 
 - name: Create and start LXC
@@ -66,7 +67,6 @@
         storage: "{{ proxmox_templates_lxc_template_storage }}"
         content_type: vztmpl
         template: "{{ proxmox_templates_template.disk }}"
-      delegate_to: localhost
     - name: Create LXC container
       community.proxmox.proxmox:
         state: present
@@ -90,7 +90,6 @@
         features:
           - nesting=1
         tags: "{{ proxmox_templates_template.tags }}"
-      delegate_to: localhost
     - name: Start LXC container
       community.proxmox.proxmox:
         state: started
@@ -138,4 +137,3 @@
         macro: SSH
         enable: true
         pos: 1
-  delegate_to: localhost
