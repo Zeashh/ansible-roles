@@ -7,7 +7,6 @@ proxmox_templates_vm_import_storage: "local"
 proxmox_templates_lxc_template_storage: "local"
 
 ## Define environment variables here or set them in the execution environment
-proxmox_templates_proxmox_api: {}
 # PROXMOX_HOST: 
 # PROXMOX_PORT:
 # PROXMOX_USER: 
