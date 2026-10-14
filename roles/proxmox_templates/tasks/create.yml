@@ -56,6 +56,9 @@
       community.proxmox.proxmox_kvm:
         vmid: "{{ proxmox_templates_template.id }}"
         state: started
+    - name: Wait for VM to boot
+      ansible.builtin.pause:
+        seconds: 30
   when: proxmox_templates_template.type == 'vm'
 
 - name: Create and start LXC
