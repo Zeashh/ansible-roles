@@ -7,7 +7,6 @@
         content_type: import
         url: "{{ proxmox_templates_template.disk }}"
         state: present
-      delegate_to: "{{ proxmox_templates_template.node }}"
     - name: Create VM (without disk)
       community.proxmox.proxmox_kvm:
         vmid: "{{ proxmox_templates_template.id }}"
