@@ -37,7 +37,7 @@
           net0: "ip={{ proxmox_templates_template.ip }}{{ (',gw=' ~ proxmox_templates_template.gateway) if proxmox_templates_template.gateway is defined else '' }}"
         nameservers: "{{ proxmox_templates_template.nameservers | default(omit) }}"
         searchdomains: "{{ proxmox_templates_template.searchdomains | default(omit) }}"
-        sshkeys: "{{ proxmox_templates_template.sshkeys }}"
+        sshkeys: "{{ proxmox_templates_template.sshkeys | join('\n') | default(omit)}}"
         tags: "{{ proxmox_templates_template.tags | default(omit) }}"
     - name: Attach downloaded disk to VM
       community.proxmox.proxmox_disk:
