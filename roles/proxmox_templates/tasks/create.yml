@@ -3,7 +3,7 @@
     - name: Download cloud image into import storage
       community.proxmox.proxmox_template:
         node: "{{ proxmox_templates_template.node }}"
-        storage: "{{ proxmox_templates_template.storage }}"
+        storage: "{{ proxmox_templates_vm_import_storage }}"
         content_type: import
         url: "{{ proxmox_templates_template.disk }}"
         state: present

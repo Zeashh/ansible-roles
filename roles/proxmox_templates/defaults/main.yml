@@ -3,6 +3,7 @@
 # - Template comes with firewall enabled (only SSH port open)
 
 proxmox_templates_vm_disk_tmp_dir: "/tmp"
+proxmox_templates_vm_import_storage: "local"
 proxmox_templates_lxc_template_storage: "local"
 
 ## Define environment variables here or set them in the execution environment
