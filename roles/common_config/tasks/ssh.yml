@@ -1,12 +1,12 @@
 - name: Create temporary file
   file:
-    path: "/tmp/authorized_keys.tmp"
+    path: /tmp/authorized_keys.tmp
     state: touch
     mode: 0600
 
 - name: Fill up temporary file
   lineinfile:
-    path: "/tmp/authorized_keys.tmp"
+    path: /tmp/authorized_keys.tmp
     insertafter: EOF
     line: "{{ item }}"
   loop: "{{ common_config_authorized_ssh_keys }}"
@@ -15,12 +15,19 @@
 - name: Add management authorized keys for root user on Proxmox hosts
   copy:
     remote_src: true
-    src: "/tmp/authorized_keys.tmp"
-    dest: "{{ ansible_env.HOME }}/.ssh/authorized_keys"
+    src: /tmp/authorized_keys.tmp
+    dest: /root/.ssh/authorized_keys
     mode: 0600
-    owner: "{{ ansible_env.USER }}"
-    group: "{{ ansible_env.USER }}"
-#   when: inventory_hostname in groups[common_config_pve_group] + groups[common_config_pbs_group]
-#
-# - name: Add management authorized keys for system user
-#   when: inventory_hostname not in groups[common_config_pve_group] + groups[common_config_pbs_group]
+    owner: root
+    group: root
+  when: inventory_hostname in groups[common_config_pve_group] + groups[common_config_pbs_group]
+
+- name: Add management authorized keys for local system user on other hosts
+  copy:
+    remote_src: true
+    src: /tmp/authorized_keys.tmp
+    dest: "/home/{{ common_config_system_user }}/.ssh/authorized_keys"
+    mode: 0600
+    owner: "{{ common_config_system_user }}"
+    group: "{{ common_config_system_user }}"
+  when: inventory_hostname not in groups[common_config_pve_group] + groups[common_config_pbs_group]
