@@ -43,7 +43,7 @@
         vmid: "{{ proxmox_templates_template.id }}"
         disk: scsi0
         storage: "{{ proxmox_templates_template.storage }}"
-        import_from: "{{ proxmox_templates_template.storage }}:import/{{ proxmox_templates_template.disk | basename }}"
+        import_from: "{{ proxmox_templates_vm_import_storage }}:import/{{ proxmox_templates_template.disk | basename }}"
         format: "{{ proxmox_templates_template.disk_format }}"
         state: present
     - name: Resize VM disk
