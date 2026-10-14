@@ -1,4 +1,4 @@
 common_config_system_user: debian
 
-common_config_management_authorized_ssh_keys:
+common_config_authorized_ssh_keys:
   - ""
