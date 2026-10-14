@@ -29,7 +29,7 @@
         scsihw: virtio-scsi-single
         ide:
           ide0: "{{ proxmox_templates_template.storage }}:cloudinit,format={{ proxmox_templates_template.disk_format }}"
-          ide1: "{{ proxmox_templates_template.storage }}:ide,format={{ proxmox_templates_template.disk_format }}"
+          ide1: "none,media=cdrom"
         # Cloud-init settings
         ciuser: "{{ proxmox_templates_template.user }}"
         cipassword: "{{ proxmox_templates_template.user_password }}"
