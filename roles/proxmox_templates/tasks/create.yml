@@ -11,9 +11,9 @@
       delegate_to: "{{ proxmox_templates_template.node }}"
     - name: Create VM (without disk)
       community.proxmox.proxmox_kvm:
-        vmid: "{{ id }}"
-        node: "{{ node }}"
-        name: "{{ name }}"
+        vmid: "{{ proxmox_templates_template.id }}"
+        node: "{{ proxmox_templates_template.node }}"
+        name: "{{ proxmox_templates_template.name }}"
         ostype: "{{ proxmox_templates_template.ostype }}"
         cores: "{{ proxmox_templates_template.cores }}"
         memory: "{{ proxmox_templates_template.memory }}"
