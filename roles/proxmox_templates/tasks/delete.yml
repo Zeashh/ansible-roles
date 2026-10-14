@@ -3,6 +3,7 @@
     vmid: "{{ proxmox_templates_template.id }}"
     state: absent
     force: true
+    timeout: 180
   delegate_to: localhost
   when: proxmox_templates_template.type == 'vm'
 
