@@ -37,6 +37,7 @@
         nameservers: "{{ proxmox_templates_template.nameservers }}"
         searchdomains: "{{ proxmox_templates_template.searchdomains }}"
         sshkeys: "{{ proxmox_templates_template.sshkeys }}"
+        tags: "{{ proxmox_templates_template.tags }}"
     - name: Attach downloaded disk to VM
       community.proxmox.proxmox_disk:
         vmid: "{{ proxmox_templates_template.id }}"
@@ -88,6 +89,7 @@
         unprivileged: "{{ proxmox_templates_template.unprivileged }}"
         features:
           - nesting=1
+        tags: "{{ proxmox_templates_template.tags }}"
       delegate_to: localhost
     - name: Start LXC container
       community.proxmox.proxmox:
