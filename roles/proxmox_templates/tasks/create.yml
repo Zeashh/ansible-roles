@@ -31,7 +31,7 @@
           ide1: "{{ proxmox_templates_template.storage }}:ide,format={{ proxmox_templates_template.disk_format }}"
         # Cloud-init settings
         ciuser: "{{ proxmox_templates_template.user }}"
-        cipassword: "{{ proxmox_templates_template.password }}"
+        cipassword: "{{ proxmox_templates_template.user_password }}"
         ipconfig:
           net0: "ip={{ proxmox_templates_template.ip }}{{ (',gw=' ~ proxmox_templates_template.gateway) if proxmox_templates_template.gateway is defined else '' }}"
         nameservers: "{{ proxmox_templates_template.nameservers }}"
@@ -73,7 +73,7 @@
         vmid: "{{ proxmox_templates_template.id }}"
         node: "{{ proxmox_templates_template.node }}"
         hostname: "{{ proxmox_templates_template.name }}"
-        password: "{{ proxmox_templates_template.user_password }}"
+        password: "{{ proxmox_templates_template.root_password }}"
         ostemplate: "{{ proxmox_templates_lxc_template_storage }}:vztmpl/{{ proxmox_templates_template.disk }}"
         cores: "{{ proxmox_templates_template.cores }}"
         memory: "{{ proxmox_templates_template.memory }}"
