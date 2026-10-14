@@ -1,13 +1,12 @@
 - name: Create and start VM
   block:
-    - name: Download VM disk
-      ansible.builtin.get_url:
+    - name: Download cloud image into import storage
+      community.proxmox.proxmox_template:
+        node: "{{ proxmox_templates_template.node }}"
+        storage: "{{ proxmox_templates_template.storage }}"
+        content_type: import
         url: "{{ proxmox_templates_template.disk }}"
-        dest: "{{ proxmox_templates_vm_disk_tmp_dir }}"
-        owner: root
-        group: root
-        mode: "0640"
-      register: proxmox_templates_vm_disk
+        state: present
       delegate_to: "{{ proxmox_templates_template.node }}"
     - name: Create VM (without disk)
       community.proxmox.proxmox_kvm:
@@ -45,14 +44,14 @@
         vmid: "{{ proxmox_templates_template.id }}"
         disk: scsi0
         storage: "{{ proxmox_templates_template.storage }}"
-        import_from: "{{ proxmox_templates_vm_disk.dest }}"
+        import_from: "{{ proxmox_templates_template.storage }}:import/{{ proxmox_templates_template.disk | basename }}"
         format: "{{ proxmox_templates_template.disk_format }}"
         state: present
     - name: Resize VM disk
       community.proxmox.proxmox_disk:
         vmid: "{{ proxmox_templates_template.id }}"
         disk: scsi0
-        size: "{{ proxmox_templates_template.disk_size }}" 
+        size: "{{ proxmox_templates_template.disk_size }}G"
         state: resized
     - name: Start VM
       community.proxmox.proxmox_kvm:
