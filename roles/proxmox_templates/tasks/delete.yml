@@ -1,4 +1,4 @@
-- name: Delete existing VM template
+- name: "Delete existing VM template (name: {{ proxmox_templates_template.name }}, node: {{ proxmox_templates_template.node }}, VM ID: {{ proxmox_templates_template.id }})"
   community.proxmox.proxmox_kvm:
     vmid: "{{ proxmox_templates_template.id }}"
     state: absent
@@ -7,7 +7,7 @@
   delegate_to: localhost
   when: proxmox_templates_template.type == 'vm'
 
-- name: Delete existing LXC template
+- name: "Delete existing LXC template (name: {{ proxmox_templates_template.name }}, node: {{ proxmox_templates_template.node }}, VM ID: {{ proxmox_templates_template.id }})"
   community.proxmox.proxmox:
     vmid: "{{ proxmox_templates_template.id }}"
     state: absent

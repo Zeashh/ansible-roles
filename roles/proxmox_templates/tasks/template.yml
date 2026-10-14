@@ -1,4 +1,4 @@
-- name: Turn VM into template
+- name: "Turn VM into template (name: {{ proxmox_templates_template.name }}, node: {{ proxmox_templates_template.node }}, VM ID: {{ proxmox_templates_template.id }})"
   block:
     - name: Shutdown VM
       community.proxmox.proxmox_kvm:
@@ -12,7 +12,7 @@
   delegate_to: localhost
   when: proxmox_templates_template.type == 'vm'
 
-- name: Turn LXC into template
+- name: "Turn LXC into template (name: {{ proxmox_templates_template.name }}, node: {{ proxmox_templates_template.node }}, VM ID: {{ proxmox_templates_template.id }})"
   block:
     - name: Shutdown LXC
       community.proxmox.proxmox:

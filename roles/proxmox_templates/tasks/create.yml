@@ -1,13 +1,13 @@
 - name: Create and start VM
   block:
-    - name: Download cloud image into import storage
+    - name: "Download cloud image into import storage (name: {{ proxmox_templates_template.name }}, node: {{ proxmox_templates_template.node }}, VM ID: {{ proxmox_templates_template.id }})"
       community.proxmox.proxmox_template:
         node: "{{ proxmox_templates_template.node }}"
         storage: "{{ proxmox_templates_vm_import_storage }}"
         content_type: import
         url: "{{ proxmox_templates_template.disk }}"
         state: present
-    - name: Create VM (without disk)
+    - name: "Create VM (without disk) (name: {{ proxmox_templates_template.name }}, node: {{ proxmox_templates_template.node }}, VM ID: {{ proxmox_templates_template.id }})"
       community.proxmox.proxmox_kvm:
         vmid: "{{ proxmox_templates_template.id }}"
         node: "{{ proxmox_templates_template.node }}"
@@ -38,7 +38,7 @@
         searchdomains: "{{ proxmox_templates_template.searchdomains | default(omit) }}"
         sshkeys: "{{ proxmox_templates_template.sshkeys | join('\n') | default(omit)}}"
         tags: "{{ proxmox_templates_template.tags | default(omit) }}"
-    - name: Attach downloaded disk to VM
+    - name: "Attach downloaded disk to VM (name: {{ proxmox_templates_template.name }}, node: {{ proxmox_templates_template.node }}, VM ID: {{ proxmox_templates_template.id }})"
       community.proxmox.proxmox_disk:
         vmid: "{{ proxmox_templates_template.id }}"
         disk: scsi0
@@ -46,17 +46,17 @@
         import_from: "{{ proxmox_templates_vm_import_storage }}:import/{{ proxmox_templates_template.disk | basename }}"
         format: "{{ proxmox_templates_template.disk_format }}"
         state: present
-    - name: Resize VM disk
+    - name: "Resize VM disk (name: {{ proxmox_templates_template.name }}, node: {{ proxmox_templates_template.node }}, VM ID: {{ proxmox_templates_template.id }})"
       community.proxmox.proxmox_disk:
         vmid: "{{ proxmox_templates_template.id }}"
         disk: scsi0
         size: "{{ proxmox_templates_template.disk_size }}G"
         state: resized
-    - name: Start VM
+    - name: "Start VM (name: {{ proxmox_templates_template.name }}, node: {{ proxmox_templates_template.node }}, VM ID: {{ proxmox_templates_template.id }})"
       community.proxmox.proxmox_kvm:
         vmid: "{{ proxmox_templates_template.id }}"
         state: started
-    - name: Wait for VM to boot
+    - name: "Wait for VM to boot (name: {{ proxmox_templates_template.name }}, node: {{ proxmox_templates_template.node }}, VM ID: {{ proxmox_templates_template.id }})"
       ansible.builtin.pause:
         seconds: 30
   when: proxmox_templates_template.type == 'vm'
@@ -69,7 +69,7 @@
         storage: "{{ proxmox_templates_lxc_template_storage }}"
         content_type: vztmpl
         template: "{{ proxmox_templates_template.disk }}"
-    - name: Create LXC container
+    - name: "Create LXC container (name: {{ proxmox_templates_template.name }}, node: {{ proxmox_templates_template.node }}, VM ID: {{ proxmox_templates_template.id }})"
       community.proxmox.proxmox:
         state: present
         vmid: "{{ proxmox_templates_template.id }}"
@@ -92,29 +92,29 @@
         features:
           - nesting=1
         tags: "{{ proxmox_templates_template.tags }}"
-    - name: Start LXC container
+    - name: "Start LXC container (name: {{ proxmox_templates_template.name }}, node: {{ proxmox_templates_template.node }}, VM ID: {{ proxmox_templates_template.id }})"
       community.proxmox.proxmox:
         state: started
         vmid: "{{ proxmox_templates_template.id }}"
-    - name: Add local user
+    - name: "Add local user (name: {{ proxmox_templates_template.name }}, node: {{ proxmox_templates_template.node }}, VM ID: {{ proxmox_templates_template.id }})"
       ansible.builtin.command: >
         pct exec {{ proxmox_templates_template.id }} --
         useradd -m -s /usr/bin/bash {{ proxmox_templates_template.user }}
       delegate_to: "{{ proxmox_templates_template.node }}"
-    - name: Set user password
+    - name: "Set user password (name: {{ proxmox_templates_template.name }}, node: {{ proxmox_templates_template.node }}, VM ID: {{ proxmox_templates_template.id }})"
       ansible.builtin.command:
         cmd: "pct exec {{ proxmox_templates_template.id }} -- chpasswd"
         stdin: "{{ proxmox_templates_template.user }}:{{ proxmox_templates_template.user_password }}"
       delegate_to: "{{ proxmox_templates_template.node }}"
       no_log: true
-    - name: Add local user to sudoers
+    - name: "Add local user to sudoers (name: {{ proxmox_templates_template.name }}, node: {{ proxmox_templates_template.node }}, VM ID: {{ proxmox_templates_template.id }})"
       ansible.builtin.command: >
         pct exec {{ proxmox_templates_template.id }} -- sh -c
         'apt update &&
         apt install -y sudo &&
         usermod -aG sudo {{ proxmox_templates_template.user }}'
       delegate_to: "{{ proxmox_templates_template.node }}"
-    - name: Add SSH keys to local user
+    - name: "Add SSH keys to local user (name: {{ proxmox_templates_template.name }}, node: {{ proxmox_templates_template.node }}, VM ID: {{ proxmox_templates_template.id }})"
       ansible.builtin.command:
         cmd: >
           pct exec {{ proxmox_templates_template.id }} -- sh -c
@@ -127,7 +127,7 @@
       delegate_to: "{{ proxmox_templates_template.node }}"
   when: proxmox_templates_template.type == 'lxc'
 
-- name: Allow SSH on VM/LXC
+- name: "Allow SSH on VM/LXC (name: {{ proxmox_templates_template.name }}, node: {{ proxmox_templates_template.node }}, VM ID: {{ proxmox_templates_template.id }})"
   community.proxmox.proxmox_firewall:
     state: present
     level: vm
