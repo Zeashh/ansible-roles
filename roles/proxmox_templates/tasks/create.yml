@@ -15,6 +15,7 @@
         node: "{{ proxmox_templates_template.node }}"
         name: "{{ proxmox_templates_template.name }}"
         ostype: "{{ proxmox_templates_template.ostype }}"
+        machine: q35
         cores: "{{ proxmox_templates_template.cores }}"
         memory: "{{ proxmox_templates_template.memory }}"
         net:
@@ -46,8 +47,13 @@
         storage: "{{ proxmox_templates_template.storage }}"
         import_from: "{{ proxmox_templates_vm_disk.dest }}"
         format: "{{ proxmox_templates_template.disk_format }}"
-        size: "{{ proxmox_templates_template.disk_size }}" 
         state: present
+    - name: Resize VM disk
+      community.proxmox.proxmox_disk:
+        vmid: "{{ proxmox_templates_template.id }}"
+        disk: scsi0
+        size: "{{ proxmox_templates_template.disk_size }}" 
+        state: resized
     - name: Start VM
       community.proxmox.proxmox_kvm:
         vmid: "{{ proxmox_templates_template.id }}"
