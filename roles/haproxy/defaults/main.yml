@@ -8,4 +8,5 @@ haproxy_template_haproxy_cfg: "haproxy.cfg.j2"
 
 # Miscellaneous
 haproxy_certbot_email: john@mail.com
-haproxy_ip: 10.0.0.10
+haproxy_ips: 
+  internal: 10.0.0.10

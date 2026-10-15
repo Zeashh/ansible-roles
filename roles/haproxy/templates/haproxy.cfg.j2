@@ -76,8 +76,8 @@ listen stats-dashboard
 #---------------------------------------------------------------------
 
 frontend https
-  bind {{ haproxy_ip }}:80
-  bind {{ haproxy_ip }}:443 ssl crt-list /etc/haproxy/certificate-list.txt
+  bind {{ haproxy_ips.internal }}:80
+  bind {{ haproxy_ips.internal }}:443 ssl crt-list /etc/haproxy/certificate-list.txt
 
   log stdout local0 info
   mode http
