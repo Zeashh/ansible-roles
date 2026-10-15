@@ -25,7 +25,9 @@ derp:
   auto_update_enabled: true
   update_frequency: 3h
 disable_check_updates: true
-ephemeral_node_inactivity_timeout: 1h
+node:
+  ephemeral:
+    inactivity_timeout: 1h
 database:
   type: sqlite
   debug: false
