@@ -1,5 +1,9 @@
 # This role should be executed in serial to avoid conflicts and other issues during the installation process.
 
+- name: Set cluster init
+  ansible.builtin.set_fact:
+    k3s_install_cluster_init_runtime: "{{ k3s_install_cluster_init }}"
+
 - name: Pre-installation tasks
   include_tasks: pre.yml
 
