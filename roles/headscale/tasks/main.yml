@@ -1,21 +1,21 @@
 - name: SSH tasks
-  import_tasks: ssh.yaml
+  import_tasks: ssh.yml
   tags:
     - headscale_ssh
 
 - name: Headscale tasks
-  import_tasks: headscale.yaml
+  import_tasks: headscale.yml
   when: headscale_headscale_group in group_names
   tags:
     - headscale_server
 
 - name: Certbot tasks
-  import_tasks: certbot.yaml
+  import_tasks: certbot.yml
   when: headscale_headscale_group in group_names
   tags:
     - headscale_certbot
 
 - name: Set up scripts on jump host
-  import_tasks: jump_scripts.yaml
+  import_tasks: jump_scripts.yml
   tags:
     - headscale_backup
