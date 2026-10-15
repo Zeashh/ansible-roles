@@ -53,13 +53,12 @@ dns:
   base_domain: clients.{{ headscale_domain }}
   nameservers:
     global:
-{{ headscale_dns_servers | to_nice_yaml | indent(3) }}
+{{ headscale_dns_servers | to_nice_yaml | indent(6, first=True) }}
   split: {}
   search_domains:
-{{ headscale_search_domains | to_nice_yaml | indent(2) }}
+{{ headscale_search_domains | to_nice_yaml | indent(4, first=True) }}
   extra_records: []
 unix_socket: /var/run/headscale/headscale.sock
 unix_socket_permission: "0770"
 logtail:
   enabled: true
-randomize_client_port: true
