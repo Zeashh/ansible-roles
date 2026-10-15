@@ -56,7 +56,10 @@ userlist common-creds
 #---------------------------------------------------------------------
 
 http-errors default-errorfiles
-  errorfile 404 /etc/haproxy/error-pages/404.http
+  {% for f in lookup('fileglob', haproxy_file_error_pages ~ '/*.http', wantlist=True) | sort %}
+  {% set code = f | basename | splitext | first %}
+  http-response return status {{ code }} default-errorfiles if { status {{ code }} }
+  {% endfor %}
 
 #---------------------------------------------------------------------
 # Dedicated stats page
@@ -99,7 +102,10 @@ frontend https
   http-request redirect scheme https code 301 unless { ssl_fc }
   http-response set-header Strict-Transport-Security "max-age=16000000; includeSubDomains; preload;"
 
-  http-response return status 404 default-errorfiles if { status 404 }
+  {% for f in lookup('fileglob', haproxy_file_error_pages ~ '/*.http', wantlist=True) | sort %}
+  {% set code = f | basename | splitext | first %}
+  http-response return status {{ code }} default-errorfiles if { status {{ code }} }
+  {% endfor %}
 
   option forwardfor header X-Real-IP
   http-request set-header X-Real-IP %[src]

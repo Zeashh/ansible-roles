@@ -110,6 +110,7 @@
     mode: "0660"
     owner: root
     group: root
+    lstrip_blocks: true
   notify: Reload HAProxy
   tags:
     - haproxy
