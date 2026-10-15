@@ -17,7 +17,7 @@ headscale_domain: domain.com
 headscale_public_ip: 5.5.5.5
 headscale_headscale_version: 0.29.4
 headscale_headscale_arch: amd64
-headscale_headscale_download_url: "https://github.com/juanfont/headscale/releases/download/v{{ headscale_version }}/headscale_{{ headscale_version }}_linux_{{ headscale_arch }}.deb"
+headscale_headscale_download_url: "https://github.com/juanfont/headscale/releases/download/v{{ headscale_headscale_version }}/headscale_{{ headscale_headscale_version }}_linux_{{ headscale_headscale_arch }}.deb"
 headscale_derp_enabled: true
 headscale_dns_servers:
   - 8.8.8.8
@@ -28,7 +28,7 @@ headscale_search_domains:
 # Let's Encrypt
 headscale_secrets_dir: /root/secrets
 headscale_letsencrypt_email: john@mail.com
-headscale_remote_cf_secrets_file: "{{ secrets_dir }}/cloudflare.ini"
+headscale_remote_cf_secrets_file: "{{ headscale_secrets_dir }}/cloudflare.ini"
 headscale_cf_api_token: token
 headscale_cert_path: "/etc/letsencrypt/live/{{ headscale_domain }}"
 headscale_cert_destination_path: /etc/headscale/certs
@@ -43,8 +43,8 @@ headscale_headscale_ssh_port: 22
 # Backups (run daily)
 headscale_backup_hour: 5
 headscale_keep_last: 2
-headscale_scripts_dir: "/home/{{ ssh_remote_user }}/scripts"
+headscale_scripts_dir: "/home/{{ headscale_ssh_remote_user }}/scripts"
 headscale_backup_script_name: headscale_backup.sh
-headscale_backup_script_path: "{{ scripts_dir }}/{{ backup_script_name }}"
+headscale_backup_script_path: "{{ headscale_scripts_dir }}/{{ headscale_backup_script_name }}"
 headscale_backup_prepare_script_name: headscale_backup_prepare.sh
-headscale_backup_prepare_script_path: "{{ scripts_dir }}/{{ backup_prepare_script_name }}"
+headscale_backup_prepare_script_path: "{{ headscale_scripts_dir }}/{{ headscale_backup_prepare_script_name }}"
