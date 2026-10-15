@@ -94,8 +94,8 @@
     - haproxy
 
 - name: Upload certificate list
-  copy:
-    src: "{{ haproxy_file_certificate_list }}"
+  template:
+    src: "{{ haproxy_template_certificate_list }}"
     dest: /etc/haproxy/
     mode: "0660"
     owner: root
