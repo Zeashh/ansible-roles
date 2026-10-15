@@ -6,3 +6,6 @@
     group: root
     mode: 0644
   notify: Reload sysctl
+  tags:
+    - k3s_install_control_plane
+    - k3s_install_node

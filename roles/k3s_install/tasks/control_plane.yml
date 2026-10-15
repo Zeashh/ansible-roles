@@ -14,7 +14,7 @@
     --etcd-snapshot-retention {{ k3s_install_etcd_snapshot_retention }}
     --etcd-expose-metrics {{ k3s_install_etcd_metrics }}
     --tls-san {{ inventory_hostname }}
-    --tls-san {{ ansible_hostname }}
+    --tls-san {{ ansible_facts["hostname"] }}
     --tls-san {{ k3s_install_endpoint_domain }}
     --cluster-init
   args:
@@ -37,7 +37,7 @@
     --etcd-snapshot-retention {{ k3s_install_etcd_snapshot_retention }}
     --etcd-expose-metrics {{ k3s_install_etcd_metrics }}
     --tls-san {{ inventory_hostname }}
-    --tls-san {{ ansible_hostname }}
+    --tls-san {{ ansible_facts["hostname"] }}
     --tls-san {{ k3s_install_endpoint_domain }}
     --server {{ k3s_install_endpoint_scheme }}://{{ k3s_install_endpoint_domain }}:{{ k3s_install_endpoint_port }}
   args:

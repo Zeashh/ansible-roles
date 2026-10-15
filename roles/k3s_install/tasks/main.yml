@@ -1,8 +1,7 @@
 # This role should be executed in serial to avoid conflicts and other issues during the installation process.
 
-- name: Set cluster init
-  set_fact:
-    k3s_install_cluster_init_runtime: "{{ k3s_install_cluster_init }}"
+- name: Pre-installation tasks
+  include_tasks: pre.yml
 
 - name: Control plane tasks
   block:
@@ -28,7 +27,5 @@
   tags:
     - k3s_install_node
 
-- name: Global configuration
-  import_tasks: global.yml
-  tags:
-    - k3s_install_global
+- name: Post-installation tasks
+  include_tasks: post.yml

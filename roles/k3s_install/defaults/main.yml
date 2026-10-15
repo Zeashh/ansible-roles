@@ -33,6 +33,10 @@ k3s_install_etcd_snapshot_schedule: "0 15,21 * * *"
 k3s_install_etcd_snapshot_retention: 2
 k3s_install_etcd_metrics: true
 
+# Necessary packages
+k3s_install_node_required_packages:
+  - open-iscsi
+
 # Necessary to make 'kubectl logs' command work
 k3s_install_inotify_max_instances: "8192"
 k3s_install_inotify_max_watches: "262144"

@@ -1,0 +1,7 @@
+- name: Install required packages on all worker nodes
+  apt:
+    update_cache: true
+    package: "{{ node_required_packages }}"
+  when: "'node' in group_names"
+  tags:
+    - k3s_install_node
