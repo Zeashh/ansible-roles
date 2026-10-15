@@ -4,7 +4,6 @@
     state: absent
     force: true
     timeout: 180
-  delegate_to: localhost
   when: proxmox_templates_template.type == 'vm'
 
 - name: "Delete existing LXC template (name: {{ proxmox_templates_template.name }}, node: {{ proxmox_templates_template.node }}, VM ID: {{ proxmox_templates_template.id }})"
@@ -12,5 +11,4 @@
     vmid: "{{ proxmox_templates_template.id }}"
     state: absent
     force: true
-  delegate_to: localhost
   when: proxmox_templates_template.type == 'lxc'

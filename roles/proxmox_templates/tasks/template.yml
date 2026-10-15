@@ -9,7 +9,6 @@
       community.proxmox.proxmox_kvm:
         vmid: "{{ proxmox_templates_template.id }}"
         state: template
-  delegate_to: localhost
   when: proxmox_templates_template.type == 'vm'
 
 - name: "Turn LXC into template (name: {{ proxmox_templates_template.name }}, node: {{ proxmox_templates_template.node }}, VM ID: {{ proxmox_templates_template.id }})"
@@ -23,5 +22,4 @@
       community.proxmox.proxmox:
         vmid: "{{ proxmox_templates_template.id }}"
         state: template
-  delegate_to: localhost
   when: proxmox_templates_template.type == 'lxc'
