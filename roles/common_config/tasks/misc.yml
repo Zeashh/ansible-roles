@@ -8,9 +8,9 @@
     name: "{{ item }}"
     state: stopped
     enabled: false
-  when: item in services
+  when: item in ansible_facts['services']
   loop: "{{ common_config_services_to_disable }}"
-  notify: Reset list of failed ansible_facts["services"]
+  notify: Reset list of failed services
 
 # SSH
 
