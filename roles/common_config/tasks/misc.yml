@@ -10,7 +10,7 @@
     enabled: false
   when: item in services
   loop: "{{ common_config_services_to_disable }}"
-  notify: Reset list of failed services
+  notify: Reset list of failed ansible_facts["services"]
 
 # SSH
 
@@ -34,7 +34,7 @@
   lineinfile:
     path: /etc/hosts
     regexp: 127.0.1.1
-    line: "127.0.1.1       {{ ansible_hostname }}.{{ common_config_local_domain }}   {{ ansible_hostname }}"
+    line: "127.0.1.1       {{ ansible_facts['hostname'] }}.{{ common_config_local_domain }}   {{ ansible_facts['hostname'] }}"
 
 - name: Disable sleep on closed lid
   lineinfile:
