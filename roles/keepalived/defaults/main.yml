@@ -1,0 +1,19 @@
+# Role file/template paths
+keepalived_template_check_script: "check_script.sh.j2"
+keepalived_template_notify_script: "notify_script.sh.j2"
+keepalived_template_keepalived_conf: "keepalived.conf.j2"
+
+# Inventory groups
+keepalived_group: edge
+
+# General settings
+keepalived_int: eth0
+keepalived_vr_id: 100
+keepalived_master_priority: 100
+keepalived_advert_int: 1
+keepalived_vrrp_addresses:
+  - 10.0.0.10/24
+  - 10.0.0.11/24
+
+keepalived_check_script_dest: "/usr/local/bin/keepalived_check.sh"
+keepalived_notify_script_dest: "/usr/local/bin/keepalived_notify.sh"

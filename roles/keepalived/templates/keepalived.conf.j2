@@ -1,0 +1,31 @@
+vrrp_script check_script {
+    script "{{ keepalived_check_script_dest }}"
+    interval 2
+    fall 2
+    rise 2
+}
+
+vrrp_instance {{ ansible_facts['hostname'] }} {
+    state BACKUP
+    interface {{ keepalived_int }}
+    virtual_router_id {{ keepalived_vr_id }}
+    priority {{ keepalived_master_priority - groups[keepalived_group].index(inventory_hostname) }}
+    advert_int {{ keepalived_advert_int }}
+
+    unicast_src_ip {{ ansible_facts['default_ipv4']['address'] }}
+    unicast_peer {
+        {% for host in groups[keepalived_group] if host != inventory_hostname %}
+        {{ hostvars[host]['ansible_facts']['default_ipv4']['address'] }}
+        {% endfor %}
+    virtual_ipaddress {
+        {% for a in keepalived_vrrp_addresses | sort %}
+        {{ a }}
+        {% endfor %}
+    }
+
+    track_script {
+        check_script
+    }
+
+    notify {{ keepalived_notify_script_dest }}
+}

@@ -1,0 +1,37 @@
+- name: Install keepalived
+  apt:
+    package: keepalived
+    update_cache: true
+  tags:
+    - keepalived
+
+- name: Start and enable keepalived
+  service:
+    name: keepalived
+    enabled: true
+    state: started
+  tags:
+    - keepalived
+
+- name: Write check script
+  template:
+    src: "{{ keepalived_template_check_script }}"
+    dest: "{{ keepalived_check_script_dest }}"
+    lstrip_blocks: true
+    owner: root
+    group: root
+    mode: 0755
+  tags:
+    - keepalived
+
+- name: Write keepalived conf
+  template:
+    src: "{{ keepalived_template_keepalived_conf }}"
+    dest: /etc/keepalived/keepalived.conf
+    lstrip_blocks: true
+    owner: root
+    group: root
+    mode: 0640
+  notify: Reload keepalived
+  tags:
+    - keepalived
