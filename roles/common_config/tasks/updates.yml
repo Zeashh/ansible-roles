@@ -34,6 +34,17 @@
     - Start QEMU guest agent
   when: virtual is defined and virtual is succeeded
 
+- name: Install qdevice backend on qdevice host
+  apt:
+    package:
+      - corosync-qdevice
+      - corosync-qnetd
+    state: latest
+  when: qdevice is defined
+  notify:
+    - Enable qdevice
+    - Start qdevice
+
 - name: apt autoremove
   apt:
     autoremove: true

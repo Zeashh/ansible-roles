@@ -21,6 +21,16 @@
     name: qemu-guest-agent
     state: started
 
+- name: Enable qdevice
+  service:
+    name: corosync-qnetd
+    state: enabled
+
+- name: Start qdevice
+  service:
+    name: corosync-qnetd
+    state: started
+
 - name: Restart unattended-upgrades.service
   service:
     name: unattended-upgrades
