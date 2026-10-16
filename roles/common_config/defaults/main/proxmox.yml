@@ -6,6 +6,6 @@ common_config_pbs_group: "pbs_nodes"
 common_config_subscription_url: "https://github.com/Jamesits/pve-fake-subscription/releases/download/v0.0.12/pve-fake-subscription_0.0.12+git-1_all.deb"
 common_config_subscription_check_url: "shop.maurer-it.com"
 
-common_config_roxmox_unwanted_packages: []
-common_config_roxmox_mandatory_packages:
+common_config_proxmox_unwanted_packages: []
+common_config_proxmox_mandatory_packages:
   - corosync-qdevice
