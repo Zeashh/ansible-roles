@@ -40,7 +40,7 @@
       - corosync-qdevice
       - corosync-qnetd
     state: latest
-  when: qdevice is defined
+  when: common_config_qdevice_group in group_names
   notify:
     - Enable qdevice
     - Start qdevice

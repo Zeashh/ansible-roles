@@ -1,6 +1,7 @@
 # Inventory groups
 common_config_pve_group: "pve_nodes"
 common_config_pbs_group: "pbs_nodes"
+common_config_qdevice_group: "pve_qdevice"
 
 # Shout-out to this great project!
 common_config_subscription_url: "https://github.com/Jamesits/pve-fake-subscription/releases/download/v0.0.12/pve-fake-subscription_0.0.12+git-1_all.deb"
