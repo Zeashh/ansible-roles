@@ -42,13 +42,10 @@
           - corosync-qdevice
           - corosync-qnetd
         state: latest
-    - name: Enable qdevice
-      service:
+    - name: Enable and start qdevice
+      ansible.builtin.service:
         name: corosync-qnetd
-        state: enabled
-    - name: Start qdevice
-      service:
-        name: corosync-qnetd
+        enabled: true
         state: started
   when: common_config_qdevice_group in group_names
 
