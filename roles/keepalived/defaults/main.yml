@@ -14,6 +14,20 @@ keepalived_advert_int: 1
 keepalived_vrrp_addresses:
   - 10.0.0.10/24
   - 10.0.0.11/24
-
 keepalived_check_script_dest: "/usr/local/bin/keepalived_check.sh"
+keepalived_check_script_interval: 5
+keepalived_check_script_fall: 2
+keepalived_check_script_rise: 2
 keepalived_notify_script_dest: "/usr/local/bin/keepalived_notify.sh"
+
+keepalived_wireguard_container: wireguard
+keepalived_health_url: https://headscale.domain.com/health
+keepalived_discord_webhook_url: "https://discord.com/api/webhooks/..."
+keepalived_discord_alert_payload: |
+  {                                      
+    "embeds": [{
+      "title": "EDGE HOST DOWN",
+      "description": "Check the logs",
+      "color": 15158332
+    }]
+  }

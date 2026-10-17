@@ -1,1 +1,42 @@
 #!/bin/bash
+
+# Keepalived-supplied arguments
+TYPE=$1
+NAME=$2
+STATE=$3
+PRIORITY=$4
+
+# Miscellaneous
+_wireguard_container={{ keepalived_wireguard_container }}
+_discord_webook_url={{ keepalived_discord_webhook_url }}
+_discord_alert_text={{ keepalived_discord_alert_text }}
+
+notifyAdmin() {
+    curl -fsS -H "Content-Type: application/json" \
+        -d '{{ keepalived_discord_alert_payload }}' \
+        "$_discord_webook_url"
+    logger -t $(basename $0) "Admin notified of Keepalived FAULT state"
+}
+
+case $STATE in
+    "MASTER")
+        systemctl start haproxy
+        docker start $_wireguard_container > /dev/null
+        exit 0
+        ;;
+    "BACKUP")
+        systemctl stop haproxy
+        docker stop $_wireguard_container > /dev/null
+        exit 0
+        ;;
+    "FAULT")
+        systemctl stop haproxy
+        docker stop $_wireguard_container > /dev/null
+        notifyAdmin
+        exit 0
+        ;;
+    *)
+        echo "Unknown state"
+        exit 1
+        ;;
+esac
