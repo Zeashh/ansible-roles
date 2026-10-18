@@ -1,3 +1,7 @@
+- name: Validate config and reload HAProxy
+  ansible.builtin.shell: "/usr/sbin/haproxy -c -V -f /etc/haproxy/haproxy.cfg"
+  notify: Reload HAProxy
+
 - name: Reload HAProxy
   service:
     name: haproxy

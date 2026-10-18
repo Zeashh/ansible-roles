@@ -111,7 +111,7 @@
     owner: root
     group: root
     lstrip_blocks: true
-  notify: Reload HAProxy
+  notify: Validate config and reload HAProxy
   tags:
     - haproxy
 
