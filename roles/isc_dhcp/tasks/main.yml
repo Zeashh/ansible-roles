@@ -13,6 +13,8 @@
     owner: root
     group: root
     lstrip_blocks: true
+    validate: /sbin/dhcpd -t -cf %s
+    backup: true
   notify: Reload isc-dhcp-server.service
   tags:
     - isc_dhcp
