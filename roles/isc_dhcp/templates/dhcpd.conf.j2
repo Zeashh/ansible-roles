@@ -1,0 +1,44 @@
+failover peer "failover-peer" {
+    {% if inventory_hostname == groups[isc_dhcp_group][0] %}
+    primary;
+    {% else %}
+    secondary;
+    {% endif %}
+    address {{ ansible_facts['default_ipv4']['address'] }};
+    port 647;
+    {% for host in groups[isc_dhcp_group] if host != inventory_hostname %}
+    peer address {{ hostvars[host]['ansible_facts']['default_ipv4']['address'] }};
+    {% endfor %}
+    peer port 647;
+    max-response-delay 30;
+    max-unacked-updates 10;
+    load balance max seconds 3;
+    {% if inventory_hostname == groups[isc_dhcp_group][0] %}
+    mclt 3600;
+    split 128;
+    {% endif %}
+}
+
+subnet {{ isc_dhcp_network }} netmask {{ isc_dhcp_subnet }} {
+    option domain-name-servers {{ isc_dhcp_dns_servers | join(', ') }};
+    option domain-name "{{ isc_dhcp_domain }}";
+    option domain-search "{{ isc_dhcp_local_domain }}";
+    option routers {{ isc_dhcp_gateway }};
+    option broadcast-address {{ isc_dhcp_broadcast }};
+    default-lease-time {{ isc_dhcp_default_lease_time_seconds }};
+    max-lease-time {{ isc_dhcp_max_lease_time_seconds }};
+
+    pool {
+        failover peer "failover-peer";
+        range {{ isc_dhcp_start_address ~ ' ' ~ isc_dhcp_end_address }};
+    }
+}
+
+{% for h in isc_dhcp_reservations | sort %}
+
+host {{ h['hostname'] }} {
+    hardware ethernet {{ h['mac'] }};
+    fixed-address {{ h['ip'] }};
+    server-name: {{ h['hostname'] }};
+}
+{% endfor %}

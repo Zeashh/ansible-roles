@@ -1,0 +1,24 @@
+# Role file/template paths
+isc_dhcp_template_dhcpd_conf: "dhcpd.conf.j2"
+
+# Inventory groups
+isc_dhcp_group: edge
+
+# Config
+isc_dhcp_network: 10.0.0.0
+isc_dhcp_subnet: 255.255.255.0
+isc_dhcp_broadcast: 10.0.0.255
+isc_dhcp_gateway: 10.0.0.1
+isc_dhcp_start_address: 10.0.0.100
+isc_dhcp_end_address: 10.0.0.200
+isc_dhcp_dns_servers:
+  - 10.0.0.1
+  - 10.0.0.2
+isc_dhcp_domain: local.domain.com
+isc_dhcp_search_domain: local.domain.com
+isc_dhcp_default_lease_time_seconds: 86400
+isc_dhcp_max_lease_time_seconds: 604800
+isc_dhcp_reservations:
+  - hostname: pc
+    mac: 00:00:00:00:00:00
+    ip: 10.0.0.50
