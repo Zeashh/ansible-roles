@@ -114,3 +114,11 @@
   notify: Reload HAProxy
   tags:
     - haproxy
+
+- name: Start and enable HAProxy
+  service:
+    name: HAProxy
+    enabled: true
+    state: started
+  tags:
+    - haproxy
