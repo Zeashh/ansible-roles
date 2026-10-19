@@ -32,7 +32,7 @@
     owner: root
     group: root
     mode: 0640
-    validate: /sbin/keepalived -t %s
+    validate: /sbin/keepalived -t -f %s
     backup: true
   notify: Reload keepalived
   tags:
