@@ -119,7 +119,7 @@
 
 - name: Start and enable HAProxy
   service:
-    name: HAProxy
+    name: haproxy
     enabled: true
     state: started
   tags:
