@@ -14,7 +14,7 @@ vrrp_instance {{ ansible_facts['hostname'] }} {
     state BACKUP
     interface {{ keepalived_int }}
     virtual_router_id {{ keepalived_vr_id }}
-    priority {{ keepalived_master_priority - groups[keepalived_group].index(inventory_hostname) }}
+    priority {{ keepalived_master_priority - (groups[keepalived_group] | sort).index(inventory_hostname) }}
     advert_int {{ keepalived_advert_int }}
 
     unicast_src_ip {{ ansible_facts['default_ipv4']['address'] }}
