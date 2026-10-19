@@ -34,11 +34,12 @@ subnet {{ isc_dhcp_network }} netmask {{ isc_dhcp_subnet }} {
     }
 }
 
-{% for h in isc_dhcp_reservations | sort(attribute='ip') %}
+{% for h in isc_dhcp_reservations | sort(attribute='hostname') %}
 
 host {{ h['hostname'] }} {
     hardware ethernet {{ h['mac'] }};
     fixed-address {{ h['ip'] }};
-    server-name: {{ h['hostname'] }};
+    option host-name {{ h['hostname'] }};
 }
 {% endfor %}
+
