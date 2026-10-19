@@ -1,19 +1,19 @@
 failover peer "failover-peer" {
-    {% if inventory_hostname == groups[isc_dhcp_group][0] %}
+    {% if inventory_hostname == (groups[isc_dhcp_group] | sort | first) %}
     primary;
     {% else %}
     secondary;
     {% endif %}
     address {{ ansible_facts['default_ipv4']['address'] }};
     port 647;
-    {% for host in groups[isc_dhcp_group] if host != inventory_hostname %}
+    {% for host in groups[isc_dhcp_group] | sort if host != inventory_hostname %}
     peer address {{ hostvars[host]['ansible_facts']['default_ipv4']['address'] }};
     {% endfor %}
     peer port 647;
     max-response-delay 30;
     max-unacked-updates 10;
     load balance max seconds 3;
-    {% if inventory_hostname == groups[isc_dhcp_group][0] %}
+    {% if inventory_hostname == (groups[isc_dhcp_group] | sort | first) %}
     mclt 3600;
     split 128;
     {% endif %}
