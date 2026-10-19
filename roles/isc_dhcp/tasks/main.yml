@@ -5,17 +5,48 @@
   tags:
     - isc_dhcp
 
-- name: Upload isc_dhcp config
-  template:
+- name: Check if templated config differs from runtime
+  ansible.builtin.template:
     src: "{{ isc_dhcp_template_dhcpd_conf }}"
     dest: /etc/dhcp/dhcpd.conf
     mode: "0644"
     owner: root
     group: root
     lstrip_blocks: true
-    validate: /sbin/dhcpd -t -cf %s
-    backup: true
-  notify: Reload isc-dhcp-server.service
+  check_mode: true
+  diff: true
+  register: dhcpd_conf_check
+  tags:
+    - isc_dhcp
+
+- name: Upload new DHCP config
+  block:
+    - name: Upload isc_dhcp config (temporary location)
+      template:
+        src: "{{ isc_dhcp_template_dhcpd_conf }}"
+        dest: /etc/dhcp/dhcpd.conf.tmp
+        mode: "0644"
+        owner: root
+        group: root
+        lstrip_blocks: true
+    - name: Validate isc_dhcp config
+      ansible.builtin.command: "/sbin/dhcpd -t -cf /etc/dhcp/dhcpd.conf.tmp"
+      changed_when: false
+    - name: Write new config
+      copy:
+        remote_src: true
+        src: /etc/dhcp/dhcpd.conf.tmp
+        dest: /etc/dhcp/dhcpd.conf
+        mode: "0644"
+        owner: root
+        group: root
+        backup: true
+      notify: Restart isc-dhcp-server.service
+    - name: Remove tmp file
+      file:
+        path: /etc/dhcp/dhcpd.conf.tmp
+        state: absent
+  when: dhcpd_conf_check.changed
   tags:
     - isc_dhcp
 
