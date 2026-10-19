@@ -46,12 +46,34 @@
         import_from: "{{ proxmox_templates_vm_import_storage }}:import/{{ proxmox_templates_template.disk | basename }}"
         format: "{{ proxmox_templates_template.disk_format }}"
         state: present
+    - name: "Change boot order (name: {{ proxmox_templates_template.name }}, node: {{ proxmox_templates_template.node }}, VM ID: {{ proxmox_templates_template.id }})"
+      community.proxmox.proxmox_kvm:
+        vmid: "{{ proxmox_templates_template.id }}"
+        node: "{{ proxmox_templates_template.node }}"
+        boot: "order=ide1;scsi0;net0"
+        update: true
     - name: "Resize VM disk (name: {{ proxmox_templates_template.name }}, node: {{ proxmox_templates_template.node }}, VM ID: {{ proxmox_templates_template.id }})"
       community.proxmox.proxmox_disk:
         vmid: "{{ proxmox_templates_template.id }}"
         disk: scsi0
         size: "{{ proxmox_templates_template.disk_size }}G"
         state: resized
+    - name: "Change boot order (name: {{ proxmox_templates_template.name }}, node: {{ proxmox_templates_template.node }}, VM ID: {{ proxmox_templates_template.id }})"
+      community.proxmox.proxmox_kvm:
+        vmid: "{{ proxmox_templates_template.id }}"
+        node: "{{ proxmox_templates_template.node }}"
+        boot: "order=ide1;scsi0;net0"
+        update: true
+    - name: "Enable VM-level firewall (name: {{ proxmox_templates_template.name }}, node: {{ proxmox_templates_template.node }}, VM ID: {{ proxmox_templates_template.id }})"
+      ansible.builtin.uri:
+        url: "https://{{ lookup('env', 'PROXMOX_HOST') }}:{{ lookup('env', 'PROXMOX_PORT', default='8006') }}/api2/json/nodes/{{ proxmox_templates_template.node }}/qemu/{{ proxmox_templates_template.id }}/firewall/options"
+        method: PUT
+        headers:
+          Authorization: "PVEAPIToken={{ lookup('env', 'PROXMOX_USER') }}!{{ lookup('env', 'PROXMOX_TOKEN_ID') }}={{ lookup('env', 'PROXMOX_TOKEN_SECRET') }}"
+        body_format: form-urlencoded
+        body:
+          enable: 1
+        validate_certs: "{{ lookup('env', 'PROXMOX_VALIDATE_CERTS', default='true') | bool }}"
     - name: "Start VM (name: {{ proxmox_templates_template.name }}, node: {{ proxmox_templates_template.node }}, VM ID: {{ proxmox_templates_template.id }})"
       community.proxmox.proxmox_kvm:
         vmid: "{{ proxmox_templates_template.id }}"
