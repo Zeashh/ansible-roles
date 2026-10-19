@@ -21,7 +21,7 @@ keepalived_check_script_rise: 2
 keepalived_notify_script_dest: "/usr/local/bin/keepalived_notify.sh"
 
 keepalived_wireguard_container: wireguard
-keepalived_health_url: https://headscale.domain.com/health
+keepalived_headscale_health_url: https://headscale.domain.com/health
 keepalived_discord_webhook_url: "https://discord.com/api/webhooks/..."
 keepalived_discord_alert_payload: |
   {                                      
