@@ -34,7 +34,7 @@ subnet {{ isc_dhcp_network }} netmask {{ isc_dhcp_subnet }} {
     }
 }
 
-{% for h in isc_dhcp_reservations | sort %}
+{% for h in isc_dhcp_reservations | sort(attribute='ip') %}
 
 host {{ h['hostname'] }} {
     hardware ethernet {{ h['mac'] }};
