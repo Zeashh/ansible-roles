@@ -20,7 +20,7 @@ failover peer "failover-peer" {
 }
 
 subnet {{ isc_dhcp_network }} netmask {{ isc_dhcp_subnet }} {
-    option domain-name-servers {{ isc_dhcp_dns_servers | join(', ') }};
+    option domain-name-servers {{ isc_dhcp_dns_servers | sort | join(', ') }};
     option domain-name "{{ isc_dhcp_domain }}";
     option domain-search "{{ isc_dhcp_domain }}";
     option routers {{ isc_dhcp_gateway }};
