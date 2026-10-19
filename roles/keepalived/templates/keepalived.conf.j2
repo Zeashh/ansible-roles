@@ -1,3 +1,8 @@
+global_defs {
+    enable_script_security
+    script_user root
+}
+
 vrrp_script check_script {
     script "{{ keepalived_check_script_dest }}"
     interval {{ keepalived_check_script_interval }}
@@ -17,6 +22,7 @@ vrrp_instance {{ ansible_facts['hostname'] }} {
         {% for host in groups[keepalived_group] if host != inventory_hostname %}
         {{ hostvars[host]['ansible_facts']['default_ipv4']['address'] }}
         {% endfor %}
+    }
     virtual_ipaddress {
         {% for a in keepalived_vrrp_addresses | sort %}
         {{ a }}
