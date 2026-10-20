@@ -67,7 +67,7 @@
   template:
     src: "{{ haproxy_template_cloudflare_ini }}"
     dest: "{{ haproxy_secrets_path }}/cloudflare.ini"
-    mode: 0755
+    mode: 0700
     owner: root
     group: root
   tags:
