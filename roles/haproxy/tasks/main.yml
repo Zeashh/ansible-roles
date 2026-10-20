@@ -43,20 +43,10 @@
   tags:
     - haproxy
 
-- name: Create scripts directory
-  file:
-    path: /root/scripts
-    state: directory
-    mode: 0770
-    owner: root
-    group: root
-  tags:
-    - haproxy
-
 - name: Upload certificate helper script
   template:
     src: "{{ haproxy_template_certbot_helper }}"
-    dest: /root/scripts/certbot-helper.sh
+    dest: /usr/local/bin/certbot-helper.sh
     mode: 0770
     owner: root
     group: root
@@ -68,7 +58,17 @@
     name: allow-cert-gen
     state: present
     user: "{{ haproxy_certbot_script_user }}"
-    commands: /root/scripts/certbot-helper.sh
+    commands: /usr/local/bin/certbot-helper.sh
+  tags:
+    - haproxy
+
+- name: Create hooks directory
+  file:
+    path: /etc/letsencrypt/renewal-hooks/post
+    mode: "0755"
+    owner: root
+    group: root
+    state: directory
   tags:
     - haproxy
 
