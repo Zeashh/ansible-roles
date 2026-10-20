@@ -43,10 +43,30 @@
   tags:
     - haproxy
 
-- name: Upload certificate helper script
+- name: Write certificate helper script
   template:
     src: "{{ haproxy_template_certbot_helper }}"
     dest: "{{ haproxy_certbot_script_path }}"
+    mode: 0755
+    owner: root
+    group: root
+  tags:
+    - haproxy
+
+- name: Create secrets directory
+  file:
+    path: "{{ haproxy_secrets_path }}"
+    state: directory
+    mode: 0700
+    owner: root
+    group: root
+  tags:
+    - haproxy
+
+- name: Write Cloudflare secret
+  template:
+    src: "{{ haproxy_template_cloudflare_ini }}"
+    dest: "{{ haproxy_secrets_path }}/cloudflare.ini"
     mode: 0755
     owner: root
     group: root
