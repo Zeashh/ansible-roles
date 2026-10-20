@@ -80,15 +80,6 @@
   tags:
     - haproxy
 
-- name: Allow local user to execute helper script without password
-  community.general.sudoers:
-    name: allow-cert-gen
-    state: present
-    user: "{{ haproxy_certbot_script_user }}"
-    commands: /usr/local/bin/certbot-helper.sh
-  tags:
-    - haproxy
-
 - name: Create hooks directory
   file:
     path: /etc/letsencrypt/renewal-hooks/post
