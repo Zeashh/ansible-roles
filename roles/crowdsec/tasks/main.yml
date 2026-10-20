@@ -13,6 +13,7 @@
   apt:
     package: crowdsec
     update_cache: true
+    lock_timeout: 180
   tags:
     - crowdsec
 
