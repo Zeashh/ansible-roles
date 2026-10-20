@@ -1,0 +1,140 @@
+- name: Add CrowdSec repo (deb822)
+  ansible.builtin.deb822_repository:
+    name: crowdsec
+    types: deb
+    uris: https://packagecloud.io/crowdsec/crowdsec/any
+    suites: any
+    components: main
+    signed_by: https://packagecloud.io/crowdsec/crowdsec/gpgkey
+  tags:
+    - crowdsec
+
+- name: Install CrowdSec
+  apt:
+    package: crowdsec
+    update_cache: true
+  tags:
+    - crowdsec
+
+- name: Install CrowdSec bouncers
+  apt:
+    package: "{{ packages }}"
+  tags:
+    - crowdsec
+
+- name: Update CrowdSec hub
+  command: "cscli hub update"
+  changed_when: false
+  tags:
+    - crowdsec
+
+- name: Install CrowdSec collections
+  command: "cscli collections install {{ item }}"
+  changed_when: false
+  loop: "{{ collections }}"
+  tags:
+    - crowdsec
+
+- name: Start and enable CrowdSec
+  service:
+    name: crowdsec
+    enabled: true
+    state: started
+  tags:
+    - crowdsec
+
+- name: Start and enable SPOA bouncer
+  service:
+    name: crowdsec
+    enabled: true
+    state: started
+  tags:
+    - crowdsec
+
+- name: Read CrowdSec SPOA bouncer config
+  ansible.builtin.slurp:
+    src: /etc/crowdsec/bouncers/crowdsec-spoa-bouncer.yaml
+  register: spoa_bouncer_cfg
+  tags:
+    - crowdsec
+ 
+- name: Merge AppSec and captcha settings into SPOA bouncer config
+  ansible.builtin.copy:
+    dest: /etc/crowdsec/bouncers/crowdsec-spoa-bouncer.yaml
+    content: >-
+      {{ spoa_bouncer_cfg.content | b64decode | from_yaml
+         | combine(spoa_bouncer_overrides)
+         | to_nice_yaml(indent=2) }}
+    group: crowdsec-spoa
+    mode: "0640"
+    backup: true
+  vars:
+    spoa_bouncer_overrides:
+      appsec_url: "http://127.0.0.1:7422"
+      appsec_timeout: "200ms"
+      hosts:
+        - host: "*"
+          captcha:
+            provider: "turnstile"
+            site_key: "{{ crowdsec_turnstile_site_key }}"
+            secret_key: "{{ crowdsec_turnstile_secret_key }}"
+            signing_key: "{{ crowdsec_captcha_signing_key }}"
+          appsec:
+            always_send: false
+  no_log: true
+  notify: Restart crowdsec-spoa-bouncer
+  tags:
+    - crowdsec
+
+- name: Write AppSec listener config
+  template:
+    src: "{{ crowdsec_template_appsec_yaml }}"
+    dest: /etc/crowdsec/acquis.d/appsec.yaml
+    lstrip_blocks: true
+    owner: root
+    group: root
+    mode: 0640
+    backup: true
+  notify: Restart CrowdSec
+  tags:
+    - crowdsec
+
+- name: Write HAProxy log acquisition config
+  template:
+    src: "{{ crowdsec_template_haproxy_yaml }}"
+    dest: /etc/crowdsec/acquis.d/haproxy.yaml
+    lstrip_blocks: true
+    owner: root
+    group: root
+    mode: 0640
+    backup: true
+  notify: Restart CrowdSec
+  tags:
+    - crowdsec
+
+- name: Write profiles config
+  template:
+    src: "{{ crowdsec_template_profiles_yaml }}"
+    dest: /etc/crowdsec/profiles.yaml
+    lstrip_blocks: true
+    owner: root
+    group: root
+    mode: 0640
+    backup: true
+  notify: Reload CrowdSec
+  tags:
+    - crowdsec
+
+- name: Write CrowdSec config
+  template:
+    src: "{{ crowdsec_template_crowdsec_config }}"
+    dest: /etc/crowdsec/config.yaml
+    lstrip_blocks: true
+    owner: root
+    group: root
+    mode: 0640
+    validate: /usr/bin/crowdsec -t -c %s
+    backup: true
+  notify: Restart CrowdSec
+  tags:
+    - crowdsec

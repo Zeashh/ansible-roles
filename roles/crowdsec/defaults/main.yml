@@ -1,0 +1,22 @@
+# Role file/template paths
+crowdsec_template_crowdsec_config: "config.yaml.j2"
+crowdsec_template_appsec_yaml: "appsec.yaml.j2"
+crowdsec_template_haproxy_yaml: "haproxy.yaml.j2"
+crowdsec_template_profiles_yaml: "profiles.yaml.j2"
+
+# General settings
+crowdsec_packages:
+  - crowdsec-haproxy-spoa-bouncer
+  - crowdsec-firewall-bouncer-iptables
+crowdsec_collections:
+  - crowdsecurity/haproxy
+  - crowdsecurity/http-cve
+  - crowdsecurity/appsec-virtual-patching
+  - crowdsecurity/appsec-generic-rules
+  # For whitelists
+  - crowdsecurity/nextcloud
+
+## Secrets
+# crowdsec_turnstile_site_key:
+# crowdsec_turnstile_secret_key: 
+# crowdsec_captcha_signing_key:

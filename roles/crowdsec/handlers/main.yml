@@ -1,0 +1,14 @@
+- name: Reload CrowdSec
+  service:
+    name: crowdsec
+    state: reloaded
+
+- name: Restart CrowdSec
+  service:
+    name: crowdsec
+    state: restarted
+
+- name: Restart crowdsec-spoa-bouncer
+  service:
+    name: crowdsec-spoa-bouncer
+    state: restarted
