@@ -8,7 +8,7 @@ if [[ $UID != 0 ]]; then
     exit 1
 fi
 
-read -p "Enter comma-separated list of domains to get a certificate for: " _cert_domain
+_cert_domain=$1
 
 certbot certonly \
     --non-interactive \
@@ -21,11 +21,6 @@ certbot certonly \
     --keep-until-expiring \
     -d $_cert_domain
 
-printf "\n"
-ls -l /etc/letsencrypt/live
-printf "\n"
-read -p "Enter certificate directory name: " _cert_dir
-cd /etc/letsencrypt/live/$_cert_dir
-cat fullchain.pem privkey.pem > /etc/haproxy/certificates/$_cert_dir.pem
+cat fullchain.pem privkey.pem > /etc/haproxy/certificates/"$_cert_domain".pem
 
 systemctl reload haproxy
