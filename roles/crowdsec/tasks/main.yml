@@ -1,4 +1,4 @@
-- name: Add CrowdSec repo (deb822)
+- name: Add CrowdSec repo
   ansible.builtin.deb822_repository:
     name: crowdsec
     types: deb
