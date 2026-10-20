@@ -8,7 +8,13 @@ haproxy_template_haproxy_cfg: "haproxy.cfg.j2"
 haproxy_template_crowdsec_cfg: "crowdsec.cfg.j2"
 
 # Miscellaneous
+haproxy_certbot_script_path: /usr/local/bin/certbot-helper.sh 
 haproxy_certbot_script_user: "john"
 haproxy_certbot_email: john@mail.com
 haproxy_ips: 
   internal: 10.0.0.10
+haproxy_certificates:
+  - cn: domain.com
+    valid_for:
+      - domain.com
+      - "*.local.domain.com"

@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 _certbot_email="{{ haproxy_certbot_email }}"
 _cloudflare_credentials_file=/root/secrets/cloudflare.ini
@@ -8,19 +9,30 @@ if [[ $UID != 0 ]]; then
     exit 1
 fi
 
-_cert_domain=$1
+if [[ $# -lt 1 ]]; then
+    echo "Usage: $0 <cn> [additional domains...]"
+    exit 1
+fi
+
+_cert_name=$1
+_domain_args=()
+for d in "$@"; do
+    _domain_args+=(-d "$d")
+done
 
 certbot certonly \
     --non-interactive \
     --agree-tos \
-    --email $_certbot_email \
+    --email "$_certbot_email" \
     --preferred-challenges dns \
     --dns-cloudflare \
     --dns-cloudflare-credentials $_cloudflare_credentials_file \
     --dns-cloudflare-propagation-seconds 300 \
     --keep-until-expiring \
-    -d $_cert_domain
+    --cert-name "$_cert_name" \
+    "${_domain_args[@]}"
 
-cat fullchain.pem privkey.pem > /etc/haproxy/certificates/"$_cert_domain".pem
+cd /etc/letsencrypt/live/$_cert_name
+cat fullchain.pem privkey.pem > /etc/haproxy/certificates/"$_cert_name".pem
 
 systemctl reload haproxy

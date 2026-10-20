@@ -1,6 +1,7 @@
-/etc/haproxy/certificates/domain.com domain.com domain.com.
+{% for cert in haproxy_certificates %}
+/etc/haproxy/certificates/{{ cert.cn }}.pem {{ cert.valid_for | join(' ') }}
+{% endfor %}
 
 #---------------------------------------------------------------------
 # EOF
 #---------------------------------------------------------------------
-
