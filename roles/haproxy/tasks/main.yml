@@ -54,7 +54,7 @@
     - haproxy
 
 - name: Issue all defined certificates
-  command: "{{ haproxy_certbot_script_path }} {{ cert.cn }} {{ cert.valid_for | map('quote') | join(' ') }}"
+  command: "{{ haproxy_certbot_script_path }} {{ item.cn }} {{ item.valid_for | map('quote') | join(' ') }}"
   changed_when: false
   loop: "{{ haproxy_certificates }}"
   tags:
