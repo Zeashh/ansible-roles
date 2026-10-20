@@ -1,5 +1,6 @@
 common_config_mandatory_packages:
   - ssh
+  - python3-debian
   - htop
   - vim
   - git
@@ -16,6 +17,7 @@ common_config_mandatory_packages:
   - prometheus-node-exporter
   - fastfetch
   - tree
+  - apt-transport-https
 
 common_config_unwanted_packages:
   - openipmi
