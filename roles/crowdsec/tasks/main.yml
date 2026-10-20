@@ -46,7 +46,7 @@
 
 - name: Start and enable SPOA bouncer
   service:
-    name: crowdsec
+    name: crowdsec-spoa-bouncer
     enabled: true
     state: started
   tags:
