@@ -18,7 +18,7 @@
 
 - name: Install CrowdSec bouncers
   apt:
-    package: "{{ packages }}"
+    package: "{{ crowdsec_packages }}"
   tags:
     - crowdsec
 
@@ -31,7 +31,7 @@
 - name: Install CrowdSec collections
   command: "cscli collections install {{ item }}"
   changed_when: false
-  loop: "{{ collections }}"
+  loop: "{{ crowdsec_collections }}"
   tags:
     - crowdsec
 
