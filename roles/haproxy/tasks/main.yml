@@ -63,6 +63,15 @@
   tags:
     - haproxy
 
+- name: Allow local user to execute helper script without password
+  community.general.sudoers:
+    name: allow-cert-gen
+    state: present
+    user: "{{ haproxy_certbot_script_user }}"
+    commands: /root/scripts/certbot-helper.sh
+  tags:
+    - haproxy
+
 - name: Upload certificate copy script
   copy:
     src: "{{ haproxy_file_copy_certs }}"
@@ -103,6 +112,18 @@
   tags:
     - haproxy
 
+- name: Upload Crowdsec HAProxy-side config
+  template:
+    src: "{{ haproxy_template_crowdsec_cfg }}"
+    dest: /etc/haproxy/crowdsec.cfg
+    mode: "0660"
+    owner: root
+    group: root
+    lstrip_blocks: true
+  notify: Reload HAProxy
+  tags:
+    - haproxy
+
 - name: Upload HAProxy config
   template:
     src: "{{ haproxy_template_haproxy_cfg }}"
@@ -111,6 +132,7 @@
     owner: root
     group: root
     lstrip_blocks: true
+    # Also validates Crowdsec config
     validate: /usr/sbin/haproxy -c -f %s
     backup: true
   notify: Reload HAProxy

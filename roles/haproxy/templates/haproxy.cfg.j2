@@ -6,13 +6,6 @@ global
   log stdout syslog notice
   stats socket /var/run/haproxy.sock mode 600 level admin
   lua-load /etc/haproxy/lib/cors.lua
-  lua-prepend-path /usr/lib/crowdsec/lua/haproxy/?.lua
-  lua-load /usr/lib/crowdsec/lua/haproxy/crowdsec.lua # path to crowdsec.lua
-  setenv CROWDSEC_CONFIG /etc/crowdsec/bouncers/crowdsec-haproxy-bouncer.conf
-
-  httpclient.ssl.verify none
-  httpclient.resolvers.id cloudflare
-
 
 #---------------------------------------------------------------------
 # Common defaults that all the 'listen', 'backend' and 'frontend'
@@ -40,9 +33,6 @@ resolvers host-dns
   resolve_retries 3
   timeout resolve 1s
   timeout retry 1s
-
-resolvers cloudflare
-  nameserver ns1 8.8.8.8:53
 
 #---------------------------------------------------------------------
 # Userlists
@@ -86,15 +76,8 @@ frontend https
   mode http
   option httplog
   option forwardfor
+  http-request set-header X-Real-IP %[src]
   
-  # Crowdsec configuration
-  stick-table type ip size 10k expire 30m # declare a stick table to cache captcha verifications
-  http-request lua.crowdsec_allow # action to identify crowdsec remediation
-  http-request track-sc0 src if { var(req.remediation) -m str "captcha-allow" } # cache captcha allow decision 
-  http-request redirect location %[var(req.redirect_uri)] if { var(req.remediation) -m str "captcha-allow" } # redirect to initial url
-  http-request use-service lua.reply_captcha if { var(req.remediation) -m str "captcha" } # serve captcha template if remediation is captcha
-  http-request use-service lua.reply_ban if { var(req.remediation) -m str "ban" } # serve ban template if remediation is ban
-
   # Redirect away from FQDN
   http-request redirect code 301 location https://%[hdr(host),regsub('\.$','')]%[capture.req.uri] unless { hdr(host) -m reg '^.*[^.]$' }
 
@@ -102,14 +85,52 @@ frontend https
   http-request redirect scheme https code 301 unless { ssl_fc }
   http-response set-header Strict-Transport-Security "max-age=16000000; includeSubDomains; preload;"
 
+  # --- start CrowdSec ---
+  option http-buffer-request
+  unique-id-format %[uuid()]
+  unique-id-header X-Unique-ID
+  filter spoe engine crowdsec config /etc/haproxy/crowdsec.cfg
+
+  # Bodies > ~50 KB are checked on headers only (not denied)
+  acl body_within_limit req.body_size -m int le 51200
+
+  acl render_html req.hdr_cnt(Accept) eq 0
+  acl render_html req.hdr(Accept) -m sub text/html
+  acl render_html req.hdr(Accept) -m sub */*
+  acl html_rejected req.hdr(Accept) -m reg "text/html;q=0"
+  acl has_contact_url var(txn.crowdsec.contact_us_url) -m found
+  acl empty_contact_url var(txn.crowdsec.contact_us_url) -m str ""
+
+  http-request send-spoe-group crowdsec crowdsec-http-body if body_within_limit || !{ req.body_size -m found }
+  http-request send-spoe-group crowdsec crowdsec-http-no-body if !body_within_limit { req.body_size -m found }
+
+  # Redirect after successful captcha
+  http-request redirect code 302 location %[url] if { var(txn.crowdsec.remediation) -m str "allow" } { var(txn.crowdsec.redirect) -m found }
+
+  # Remediation pages (HTML)
+  http-request return status 200 content-type "text/html; charset=utf-8" hdr Cache-Control "no-cache, no-store" lf-file /var/lib/crowdsec-haproxy-spoa-bouncer/html/captcha.html if { var(txn.crowdsec.remediation) -m str "captcha" } render_html !html_rejected
+  http-request return status 403 content-type "text/html; charset=utf-8" hdr Cache-Control "no-cache, no-store" lf-file /var/lib/crowdsec-haproxy-spoa-bouncer/html/ban-with-contact.html if { var(txn.crowdsec.remediation) -m str "ban" } render_html !html_rejected has_contact_url !empty_contact_url
+  http-request return status 403 content-type "text/html; charset=utf-8" hdr Cache-Control "no-cache, no-store" lf-file /var/lib/crowdsec-haproxy-spoa-bouncer/html/ban.html if { var(txn.crowdsec.remediation) -m str "ban" } render_html !html_rejected !has_contact_url
+  http-request return status 403 content-type "text/html; charset=utf-8" hdr Cache-Control "no-cache, no-store" lf-file /var/lib/crowdsec-haproxy-spoa-bouncer/html/ban.html if { var(txn.crowdsec.remediation) -m str "ban" } render_html !html_rejected empty_contact_url
+
+  # Remediation (plain text for non-HTML clients, e.g. WebDAV/API)
+  http-request return status 200 content-type text/plain hdr Cache-Control "no-cache, no-store" string "Captcha required\n" if { var(txn.crowdsec.remediation) -m str "captcha" } !render_html
+  http-request return status 200 content-type text/plain hdr Cache-Control "no-cache, no-store" string "Captcha required\n" if { var(txn.crowdsec.remediation) -m str "captcha" } html_rejected
+  http-request return status 403 content-type text/plain hdr Cache-Control "no-cache, no-store" string "Forbidden\n" if { var(txn.crowdsec.remediation) -m str "ban" } !render_html
+  http-request return status 403 content-type text/plain hdr Cache-Control "no-cache, no-store" string "Forbidden\n" if { var(txn.crowdsec.remediation) -m str "ban" } html_rejected
+
+  # Captcha cookie
+  http-after-response set-header Set-Cookie %[var(txn.crowdsec.captcha_cookie)] if { var(txn.crowdsec.captcha_status) -m found } { var(txn.crowdsec.captcha_cookie) -m found }
+  http-after-response set-header Set-Cookie %[var(txn.crowdsec.captcha_cookie)] if { var(txn.crowdsec.captcha_cookie) -m found } !{ var(txn.crowdsec.captcha_status) -m found }
+  # --- end CrowdSec ---
+
+  # Error pages
   {% for f in lookup('fileglob', haproxy_file_error_pages ~ '/*.http', wantlist=True) | sort %}
   {% set code = f | basename | splitext | first %}
   http-response return status {{ code }} default-errorfiles if { status {{ code }} }
   {% endfor %}
 
-  option forwardfor header X-Real-IP
-  http-request set-header X-Real-IP %[src]
-
+  # Backends
   default_backend kube-http
 
 #---------------------------------------------------------------------
@@ -123,12 +144,11 @@ backend kube-http
   server k8s-worker-0 10.0.0.20:30000 check inter 5s rise 2 fall 2
   server k8s-worker-1 10.0.0.21:30000 check inter 5s rise 2 fall 2
 
-backend captcha-verifier
-  mode http
-  server turnstile-verifier challenges.cloudflare.com:443 check inter 5s resolvers host-dns resolve-prefer ipv4
-
-backend crowdsec
-  server crowdsec 127.0.0.1:8080 check inter 5s
+backend crowdsec-spoa
+  mode tcp
+  timeout connect 2s
+  timeout server 60s
+  server spoa 127.0.0.1:9000
 
 #---------------------------------------------------------------------
 # EOF
