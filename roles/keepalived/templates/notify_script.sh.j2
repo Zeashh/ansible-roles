@@ -24,13 +24,9 @@ case $STATE in
         exit 0
         ;;
     "BACKUP")
-        systemctl stop haproxy
-        docker stop $_wireguard_container > /dev/null
         exit 0
         ;;
     "FAULT")
-        systemctl stop haproxy
-        docker stop $_wireguard_container > /dev/null
         notifyAdmin
         exit 0
         ;;
