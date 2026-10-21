@@ -9,7 +9,7 @@
 - name: Read public key
   ansible.builtin.slurp:
     src: "{{ wireguard_ssh_key_path }}.pub"
-    register: pubkey
+  register: pubkey
   delegate_to: "{{ groups[wireguard_group][0] }}"
   tags:
     - wireguard
