@@ -9,8 +9,6 @@
 # possible, but leave them commented.  Uncommented options override the
 # default value.
 
-Include /etc/ssh/sshd_config.d/*.conf
-
 #Port 22
 #AddressFamily any
 #ListenAddress 0.0.0.0
@@ -122,3 +120,5 @@ Subsystem	sftp	/usr/lib/openssh/sftp-server
 #	ForceCommand cvs server
 
 Protocol 2
+
+Include /etc/ssh/sshd_config.d/*.conf
