@@ -48,6 +48,7 @@
   apt:
     update_cache: true
     package: "{{ common_config_proxmox_mandatory_packages }}"
+    lock_timeout: 180
 
 - name: Uninstall unwanted packages
   apt:
