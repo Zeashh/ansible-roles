@@ -1,14 +1,9 @@
 #!/bin/bash
 set -euo pipefail
 
-_peer={{ hostvars[groups[wireguard_group][1]]['ansible_host'] }}
+_peer={{ hostvars[groups[wireguard_group][1]]['ansible_host'] | default(groups[wireguard_group][1]) }}
 _ssh_key="{{ wireguard_ssh_key_path }}"
 _volume_dir="{{ wireguard_project_path }}/config"
-
-compose() { docker compose --project-directory "{{ wireguard_project_path }}" "$@"; }
-trap "compose up" EXIT
-
-compose down
 
 ssh -i $_ssh_key $_peer bash -s <<EOF
 set -euo pipefail

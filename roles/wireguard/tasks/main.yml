@@ -34,6 +34,23 @@
   tags:
     - wireguard
 
+- name: Read target host key
+  ansible.builtin.slurp:
+    src: /etc/ssh/ssh_host_ed25519_key.pub
+  register: target_hostkey
+  delegate_to: "{{ groups[wireguard_group][1] }}"
+  tags:
+    - wireguard
+
+- name: Add target to master's known_hosts
+  ansible.builtin.known_hosts:
+    path: /root/.ssh/known_hosts
+    name: "{{ hostvars[groups[wireguard_group][1]]['ansible_host'] | default(groups[wireguard_group][1]) }}"
+    key: "{{ hostvars[groups[wireguard_group][1]]['ansible_host'] | default(groups[wireguard_group][1]) }} {{ (target_hostkey.content | b64decode).split()[0:2] | join(' ') }}"
+  delegate_to: "{{ groups[wireguard_group][0] }}"
+  tags:
+    - wireguard
+
 - name: Create compose directory
   file:
     path: "{{ wireguard_project_path }}"
