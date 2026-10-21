@@ -60,7 +60,7 @@
         update: true
     - name: "Wait for VM to become valid for API use (name: {{ proxmox_templates_template.name }}, node: {{ proxmox_templates_template.node }}, VM ID: {{ proxmox_templates_template.id }})"
       ansible.builtin.pause:
-        seconds: 5
+        seconds: 30
     - name: "Enable VM-level firewall (name: {{ proxmox_templates_template.name }}, node: {{ proxmox_templates_template.node }}, VM ID: {{ proxmox_templates_template.id }})"
       ansible.builtin.uri:
         url: "https://{{ lookup('env', 'PROXMOX_HOST') }}:{{ lookup('env', 'PROXMOX_PORT', default='8006') }}/api2/json/nodes/{{ proxmox_templates_template.node }}/qemu/{{ proxmox_templates_template.id }}/firewall/options"
