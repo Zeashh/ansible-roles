@@ -10,7 +10,5 @@ cloudflare_ddns_image: favonia/cloudflare-ddns:1.17.1
 cloudflare_ddns_container_name_prefix: cloudflare_ddns
 cloudflare_ddns_timezone: Etc/UTC
 
-cloudflare_ddns_proxied_domains:
-  - domain.com
-cloudflare_ddns_not_proxied_domains:
-  - site.com
+cloudflare_ddns_proxied_domains: []
+cloudflare_ddns_not_proxied_domains: []
