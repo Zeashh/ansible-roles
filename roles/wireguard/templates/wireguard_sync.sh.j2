@@ -13,4 +13,4 @@ rm -rf /tmp/config.wireguard.old
 EOF
 
 rsync -a -e "ssh -i $_ssh_key" "$_volume_dir/" "$_peer:$_volume_dir/"
-ssh -i "$_ssh_key" "$_peer" docker compose --project-directory "$_project" up -d
+ssh -i "$_ssh_key" "$_peer" docker compose --project-directory "{{ wireguard_project_path }}" up -d
