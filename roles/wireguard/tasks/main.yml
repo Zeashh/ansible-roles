@@ -1,0 +1,88 @@
+- name: Generate SSH key on master host
+  community.crypto.openssh_keypair:
+    path: /root/.ssh/id_ed25519
+    type: ed25519
+  delegate_to: "{{ groups[wireguard_group][0] }}"
+  tags:
+    - wireguard
+
+- name: Read public key
+  ansible.builtin.slurp:
+    src: /root/.ssh/id_ed25519.pub
+  register: pubkey
+  delegate_to: "{{ groups[wireguard_group][0] }}"
+  tags:
+    - wireguard
+
+- name: Add key to target's authorized_keys
+  ansible.posix.authorized_key:
+    user: root
+    key: "{{ hostvars[groups[wireguard_group][0]]['pubkey'].content | b64decode }}"
+    path: "{{ wireguard_authorized_keys_file }}"
+  delegate_to: "{{ groups[wireguard_group][1] }}"
+  tags:
+    - wireguard
+
+- name: Permit root login on target
+  ansible.builtin.copy:
+    dest: /etc/ssh/sshd_config.d/10-root-login.conf
+    content: "PermitRootLogin prohibit-password\n"
+    mode: "0644"
+    validate: sshd -t -f %s
+  notify: Restart sshd
+  delegate_to: "{{ groups[wireguard_group][1] }}"
+  tags:
+    - wireguard
+
+- name: Create compose directory
+  file:
+    path: "{{ wireguard_project_path }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+  tags:
+    - wireguard
+
+- name: Write config sync script
+  template:
+    src: "{{ wireguard_template_sync_script }}"
+    dest: "{{ wireguard_project_path }}/sync.sh"
+    lstrip_blocks: true
+    owner: root
+    group: root
+    mode: 0755
+  notify: Sync Wireguard configs
+  delegate_to: "{{ groups[wireguard_group][0] }}"
+  tags:
+    - wireguard
+
+- name: Make a cron job for syncing Wireguard configs
+  ansible.builtin.cron:
+    name: "Sync Wireguard configs"
+    minute: "0"
+    hour: "3"
+    job: "{{ wireguard_project_path }}/sync.sh"
+  delegate_to: "{{ groups[wireguard_group][0] }}"
+  tags:
+    - wireguard
+
+- name: Write compose file
+  template:
+    src: "{{ wireguard_template_compose_yaml }}"
+    dest: "{{ wireguard_project_path }}/docker-compose.yaml"
+    lstrip_blocks: true
+    owner: root
+    group: root
+    mode: 0755
+  notify: Sync Wireguard configs
+  tags:
+    - wireguard
+
+- name: Run compose up
+  community.docker.docker_compose_v2:
+    project_src: "{{ wireguard_template_compose_yaml }}"
+    state: present
+    remove_orphans: true
+  tags:
+    - wireguard

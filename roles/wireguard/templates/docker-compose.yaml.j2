@@ -1,0 +1,32 @@
+volumes:
+  config:
+
+services:
+  wireguard:
+    cap_add:
+    - NET_ADMIN
+    - SYS_MODULE
+    container_name: {{ wireguard_container_name }}
+    environment:
+      INTERNAL_SUBNET: {{ wireguard_internal_subnet }}
+      LOG_CONFS: "{{ wireguard_log_confs }}"
+      PEERDNS: {{ wireguard_peerdns }}
+      PEERS: {{ wireguard_peers }}
+      PERSISTENTKEEPALIVE_PEERS: "all"
+      PUID: {{ wireguard_puid }}
+      PGID: {{ wireguard_pgid }}
+      SERVERPORT: {{ wireguard_port }}
+      SERVERURL: {{ wireguard_serverurl }}
+      TZ: {{ wireguard_timezone }}
+    hostname: {{ wireguard_container_name }}
+    image: "{{ wireguard_image }}"
+    ports:
+    - protocol: udp
+      published: {{ wireguard_port }}
+      target: 51820
+    restart: always
+    sysctls:
+      net.ipv4.conf.all.src_valid_mark: '1'
+    volumes:
+    - config:/config:rw
+    - /lib/modules:/lib/modules:rw
