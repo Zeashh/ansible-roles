@@ -81,7 +81,7 @@
 
 - name: Run compose up
   community.docker.docker_compose_v2:
-    project_src: "{{ wireguard_template_compose_yaml }}"
+    project_src: "{{ wireguard_project_path }}"
     state: present
     remove_orphans: true
   tags:
