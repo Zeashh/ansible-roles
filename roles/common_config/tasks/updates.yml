@@ -24,7 +24,9 @@
   notify:
     - Enable QEMU guest agent service
     - Start QEMU guest agent
-  when: ansible_facts['system_vendor'] == 'QEMU'
+  when:
+    - ansible_facts['virtualization_type'] == 'kvm'
+    - ansible_facts['virtualization_role'] == 'guest'
 
 - name: Set up QDevice
   block:
