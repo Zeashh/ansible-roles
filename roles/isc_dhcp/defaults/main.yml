@@ -5,6 +5,7 @@ isc_dhcp_template_dhcpd_conf: "dhcpd.conf.j2"
 isc_dhcp_group: edge
 
 # Config
+isc_dhcp_interface: eth0
 isc_dhcp_network: 10.0.0.0
 isc_dhcp_subnet: 255.255.255.0
 isc_dhcp_broadcast: 10.0.0.255

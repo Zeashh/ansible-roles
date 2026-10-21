@@ -5,6 +5,14 @@
   tags:
     - isc_dhcp
 
+- name: Set interface to listen to
+  ansible.builtin.lineinfile:
+    path: /etc/default/isc-dhcp-server
+    regexp: '^INTERFACESv4='
+    line: 'INTERFACESv4="{{ isc_dhcp_interface }}"'
+  tags:
+    - isc_dhcp
+
 - name: Check if templated config differs from runtime
   ansible.builtin.template:
     src: "{{ isc_dhcp_template_dhcpd_conf }}"
