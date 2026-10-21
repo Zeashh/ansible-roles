@@ -1,0 +1,21 @@
+{% set ddns_groups = {
+  'proxied': cloudflare_ddns_proxied_domains | default([]),
+  'not-proxied': cloudflare_ddns_not_proxied_domains | default([])
+} %}
+services:
+{% for name, domains in ddns_groups.items() if domains %}
+  {{ name }}:
+    image: {{ cloudflare_ddns_image }}
+    container_name: {{ cloudflare_ddns_container_name_prefix }}-{{ name }}
+    read_only: true
+    cap_drop: [all]
+    security_opt: [no-new-privileges:true]
+    network_mode: host
+    environment:
+      TZ: {{ cloudflare_ddns_timezone }}
+      CLOUDFLARE_API_TOKEN: "$CF_TOKEN"
+      IP6_PROVIDER: "none"
+      PROXIED: "{{ (name == 'proxied') | lower }}"
+      DOMAINS: "{{ domains | join(',') }}"
+    restart: always
+{% endfor %}

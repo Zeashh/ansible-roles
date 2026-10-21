@@ -1,0 +1,39 @@
+- name: Create compose directory
+  file:
+    path: "{{ cloudflare_ddns_project_path }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+  tags:
+    - cloudflare_ddns
+
+- name: Write compose file
+  template:
+    src: "{{ cloudflare_ddns_template_compose_yaml }}"
+    dest: "{{ cloudflare_ddns_project_path }}/docker-compose.yaml"
+    lstrip_blocks: true
+    owner: root
+    group: root
+    mode: 0755
+  tags:
+    - cloudflare_ddns
+
+- name: Write .env file
+  template:
+    src: "{{ cloudflare_ddns_template_env }}"
+    dest: "{{ cloudflare_ddns_project_path }}/.env"
+    lstrip_blocks: true
+    owner: root
+    group: root
+    mode: 0700
+  tags:
+    - cloudflare_ddns
+
+- name: Run compose up
+  community.docker.docker_compose_v2:
+    project_src: "{{ cloudflare_ddns_template_compose_yaml }}"
+    state: present
+    remove_orphans: true
+  tags:
+    - cloudflare_ddns
