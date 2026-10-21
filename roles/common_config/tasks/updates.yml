@@ -16,15 +16,6 @@
     dest: "/etc/apt/apt.conf.d/50unattended-upgrades"
   notify: Restart unattended-upgrades.service
 
-- name: Check if host is a VM
-  lineinfile:
-    dest: /sys/devices/virtual/dmi/id/sys_vendor
-    line: "QEMU"
-  register: virtual
-  check_mode: true
-  failed_when: (virtual is changed) or (virtual is failed)
-  ignore_errors: true
-
 - name: Install QEMU guest agent
   apt:
     package: qemu-guest-agent
@@ -32,7 +23,7 @@
   notify:
     - Enable QEMU guest agent service
     - Start QEMU guest agent
-  when: virtual is defined and virtual is succeeded
+  when: ansible_facts['system_vendor'] == 'QEMU'
 
 - name: Set up QDevice
   block:
