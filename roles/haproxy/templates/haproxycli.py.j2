@@ -18,13 +18,13 @@ DEFAULT_TIMEOUT = 5.0
 EXIT_ERROR, EXIT_USAGE, EXIT_NOT_DRAINED = 1, 2, 3
 
 EPILOG = """examples:
-  hasock.py stat -n web
+  hasock.py stats -n web
   hasock.py servers -n app
   hasock.py info
   hasock.py drain app_backend/app-1
   hasock.py drained app_backend/app-1 -w -T 600 && systemctl reboot
   hasock.py raw "show servers state"
-  hasock.py -s tcp:127.0.0.1:9999 stat
+  hasock.py -s tcp:127.0.0.1:9999 stats
 
 Run "hasock.py COMMAND -h" for command options.
 
@@ -121,7 +121,7 @@ def print_table(headers, rows, indent=""):
 
 # ---------- commands ----------
 
-STAT_COLUMNS = {
+STATS_COLUMNS = {
     "pxname": "PROXY",
     "svname": "NAME",
     "status": "STATUS",
@@ -149,7 +149,7 @@ SERVER_HEADERS = [
 ]
 
 
-def cmd_stat(args):
+def cmd_stats(args):
     rows = [
         row
         for row in read_stats(args)
@@ -158,8 +158,8 @@ def cmd_stat(args):
     if not rows:
         die("no matching rows")
     print_table(
-        list(STAT_COLUMNS.values()),
-        [[row.get(k) or "-" for k in STAT_COLUMNS] for row in rows],
+        list(STATS_COLUMNS.values()),
+        [[row.get(k) or "-" for k in STATS_COLUMNS] for row in rows],
     )
 
 
@@ -383,8 +383,8 @@ def build_parser():
 
     with_name(
         add(
-            "stat",
-            cmd_stat,
+            "stats",
+            cmd_stats,
             "table of frontends, backends and servers with 2xx/4xx/5xx counts",
         )
     )
