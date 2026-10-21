@@ -1,6 +1,3 @@
-volumes:
-  config:
-
 services:
   wireguard:
     cap_add:
@@ -28,5 +25,5 @@ services:
     sysctls:
       net.ipv4.conf.all.src_valid_mark: '1'
     volumes:
-    - config:/config:rw
+    - ./config:/config:rw
     - /lib/modules:/lib/modules:rw

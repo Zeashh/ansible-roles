@@ -1,0 +1,21 @@
+#!/bin/bash
+set -euo pipefail
+
+_peer={{ hostvars[groups[wireguard_group][1]]['ansible_host'] }}
+_ssh_key="{{ wireguard_ssh_key_path }}"
+_volume_dir="{{ wireguard_project_path }}/config"
+
+compose() { docker compose --project-directory "{{ wireguard_project_path }}" "$@"; }
+trap "compose up" EXIT
+
+compose down
+
+ssh -i $_ssh_key $_peer bash -s <<EOF
+set -euo pipefail
+docker compose --project-directory "{{ wireguard_project_path }}" down
+rm -rf /tmp/config.wireguard.old
+[ -d "$_volume_dir" ] && mv "$_volume_dir" /tmp/config.wireguard.old || true
+EOF
+
+rsync -a -e "ssh -i $_ssh_key" "$_volume_dir/" "$_peer:$_volume_dir/"
+ssh -i "$_ssh_key" "$_peer" docker compose --project-directory "$_project" up -d

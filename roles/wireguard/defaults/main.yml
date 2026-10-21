@@ -1,10 +1,13 @@
 # Rolefile/template paths
 wireguard_template_compose_yaml: "docker-compose.yaml.j2"
+wireguard_template_sync_script: "wireguard_sync.sh.j2"
 
 # Inventory group
 wireguard_group: edge
 
 # General settings
+wireguard_ssh_key_path: /root/.ssh/id_ed25519_wireguard
+wireguard_authorized_keys_file: /root/.ssh/ansible_authorized_keys
 wireguard_project_path: /opt/compose/wireguard
 wireguard_image: linuxserver/wireguard:1.0.20250521
 wireguard_container_name: wireguard
