@@ -43,6 +43,16 @@
   tags:
     - haproxy
 
+- name: Write HAProxy socket helper script
+  template:
+    src: "{{ haproxy_template_socket_helper_script }}"
+    dest: "{{ haproxy_socket_helper_script_path }}"
+    mode: 0755
+    owner: root
+    group: root
+  tags:
+    - haproxy
+
 - name: Write certificate helper script
   template:
     src: "{{ haproxy_template_certbot_helper }}"

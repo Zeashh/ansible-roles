@@ -1,0 +1,466 @@
+#!/usr/bin/env python3
+
+# Fully AI-generated, works for my use case
+
+"""haproxycli - client for the HAProxy Runtime API (stats socket)."""
+
+import argparse
+import csv
+import io
+import os
+import socket
+import sys
+import time
+
+__version__ = "1.0.0"
+DEFAULT_SOCKET = os.environ.get("HAPROXY_SOCKET", "{{ haproxy_socket_path }}")
+DEFAULT_TIMEOUT = 5.0
+EXIT_ERROR, EXIT_USAGE, EXIT_NOT_DRAINED = 1, 2, 3
+
+EPILOG = """examples:
+  hasock.py stat -n web
+  hasock.py servers -n app
+  hasock.py info
+  hasock.py drain app_backend/app-1
+  hasock.py drained app_backend/app-1 -w -T 600 && systemctl reboot
+  hasock.py raw "show servers state"
+  hasock.py -s tcp:127.0.0.1:9999 stat
+
+Run "hasock.py COMMAND -h" for command options.
+
+exit status:
+  0 success, 1 error (socket, HAProxy, server not in drain/maintenance),
+  2 usage error, 3 server not drained yet
+
+Runtime API reference: https://docs.haproxy.org/ (Management Guide, section 9.3)
+"""
+
+
+# ---------- helpers ----------
+
+
+def die(message, code=EXIT_ERROR):
+    print(f"error: {message}", file=sys.stderr)
+    sys.exit(code)
+
+
+def send(args, command):
+    """Send one command to the socket and return the response."""
+    if args.socket.startswith("tcp:"):
+        host, port = args.socket[4:].rsplit(":", 1)
+        sock = socket.create_connection((host, int(port)), timeout=args.timeout)
+    else:
+        sock = socket.socket(socket.AF_UNIX)
+    with sock:
+        if sock.family == socket.AF_UNIX:
+            sock.settimeout(args.timeout)
+            sock.connect(args.socket)
+        sock.sendall(command.encode() + b"\n")
+        chunks = []
+        while chunk := sock.recv(65536):
+            chunks.append(chunk)
+    return b"".join(chunks).decode(errors="replace").strip()
+
+
+def read_stats(args):
+    return list(csv.DictReader(io.StringIO(send(args, "show stat").lstrip("# "))))
+
+
+def name_matches(args, *names):
+    return not args.name or any(args.name.lower() in name.lower() for name in names)
+
+
+def fmt_num(value):
+    try:
+        return f"{int(value):,}"
+    except (TypeError, ValueError):
+        return value or "-"
+
+
+def fmt_size(value):
+    try:
+        size = float(value)
+    except (TypeError, ValueError):
+        return "-"
+    for unit in ("B", "KiB", "MiB", "GiB"):
+        if size < 1024:
+            break
+        size /= 1024
+    else:
+        unit = "TiB"
+    return f"{int(size)} B" if unit == "B" else f"{size:,.1f} {unit}"
+
+
+def fmt_duration(value):
+    try:
+        secs = int(float(value))
+    except (TypeError, ValueError):
+        return "-"
+    days, secs = divmod(secs, 86400)
+    hours, secs = divmod(secs, 3600)
+    mins, secs = divmod(secs, 60)
+    parts = ([f"{days}d"] if days else []) + ([f"{hours}h"] if days or hours else [])
+    return " ".join(parts + [f"{mins}m", f"{secs}s"])
+
+
+def fmt_limit(current, maximum):
+    limit = "unlimited" if maximum in (None, "", "0") else fmt_num(maximum)
+    return f"{fmt_num(current)} / {limit}"
+
+
+def print_table(headers, rows, indent=""):
+    widths = [
+        max(len(str(row[i])) for row in [headers] + rows) for i in range(len(headers))
+    ]
+    for row in [headers] + rows:
+        print(
+            indent
+            + "  ".join(str(cell).ljust(w) for cell, w in zip(row, widths)).rstrip()
+        )
+
+
+# ---------- commands ----------
+
+STAT_COLUMNS = {
+    "pxname": "PROXY",
+    "svname": "NAME",
+    "status": "STATUS",
+    "scur": "CUR",
+    "req_tot": "REQ_TOTAL",
+    "hrsp_2xx": "2XX",
+    "hrsp_4xx": "4XX",
+    "hrsp_5xx": "5XX",
+}
+
+SERVER_HEADERS = [
+    "SERVER",
+    "STATUS",
+    "SINCE",
+    "ADDRESS",
+    "CHECK",
+    "WEIGHT",
+    "SESSIONS",
+    "REQUESTS",
+    "4XX",
+    "5XX",
+    "IN",
+    "OUT",
+    "DOWNTIME",
+]
+
+
+def cmd_stat(args):
+    rows = [
+        row
+        for row in read_stats(args)
+        if name_matches(args, row["pxname"], row["svname"])
+    ]
+    if not rows:
+        die("no matching rows")
+    print_table(
+        list(STAT_COLUMNS.values()),
+        [[row.get(k) or "-" for k in STAT_COLUMNS] for row in rows],
+    )
+
+
+def server_cells(row):
+    check = row.get("check_status") or "no check"
+    if row.get("check_code"):
+        check += f" {row['check_code']}"
+    if row.get("check_duration"):
+        check += f" ({row['check_duration']} ms)"
+    downtime = row.get("downtime")
+    return [
+        row["svname"],
+        row["status"],
+        fmt_duration(row.get("lastchg")),
+        row.get("addr") or "-",
+        check,
+        row.get("weight") or "-",
+        f"{fmt_limit(row.get('scur'), row.get('slim'))} (peak {fmt_num(row.get('smax'))})",
+        fmt_num(row.get("req_tot") or row.get("stot")),
+        fmt_num(row.get("hrsp_4xx")),
+        fmt_num(row.get("hrsp_5xx")),
+        fmt_size(row.get("bin")),
+        fmt_size(row.get("bout")),
+        fmt_duration(downtime) if downtime not in (None, "", "0") else "-",
+    ]
+
+
+def cmd_servers(args):
+    rows = read_stats(args)
+    found = False
+    for backend in (row for row in rows if row["svname"] == "BACKEND"):
+        servers = [
+            row
+            for row in rows
+            if row["pxname"] == backend["pxname"]
+            and row["svname"] not in ("FRONTEND", "BACKEND")
+        ]
+        if not name_matches(args, backend["pxname"]):
+            servers = [row for row in servers if name_matches(args, row["svname"])]
+            if not servers:
+                continue
+        found = True
+        up = sum(row["status"].startswith("UP") for row in servers)
+        print(
+            f"{backend['pxname']}  [{backend['status']}]  {up}/{len(servers)} servers up, "
+            f"{fmt_num(backend.get('scur'))} active sessions, "
+            f"{fmt_num(backend.get('req_tot') or backend.get('stot'))} requests"
+        )
+        if servers:
+            print_table(
+                SERVER_HEADERS, [server_cells(row) for row in servers], indent="  "
+            )
+        else:
+            print("  (no servers)")
+        print()
+    if not found:
+        die("no matching backends or servers")
+
+
+def cmd_info(args):
+    raw = send(args, "show info")
+    info = {
+        key.strip(): value.strip()
+        for key, value in (
+            line.split(":", 1) for line in raw.splitlines() if ":" in line
+        )
+    }
+    if args.raw or not info:
+        print(raw)
+        return
+    get = info.get
+
+    def rate(now, peak):
+        return f"{fmt_num(get(now))} / {fmt_num(get(peak))} per s"
+
+    sections = {
+        "Process": [
+            ("Version", f"{get('Version', '-')} ({get('Release_date', '-')})"),
+            ("Node", get("node", "-")),
+            ("PID / threads", f"{get('Pid', '-')} / {get('Nbthread', '-')}"),
+            ("Uptime", fmt_duration(get("Uptime_sec"))),
+            ("Stopping", "yes" if get("Stopping") == "1" else "no"),
+        ],
+        "Connections": [
+            ("Current / max", fmt_limit(get("CurrConns"), get("Maxconn"))),
+            ("Total connections", fmt_num(get("CumConns"))),
+            ("Total requests", fmt_num(get("CumReq"))),
+            ("Conn rate (now / peak)", rate("ConnRate", "MaxConnRate")),
+            ("Session rate (now / peak)", rate("SessRate", "MaxSessRate")),
+        ],
+        "SSL": [
+            ("Current / max", fmt_limit(get("CurrSslConns"), get("MaxSslConns"))),
+            ("Total SSL connections", fmt_num(get("CumSslConns"))),
+            ("SSL rate (now / peak)", rate("SslRate", "MaxSslRate")),
+        ],
+        "Resources": [
+            (
+                "Memory pools used / alloc",
+                f"{get('PoolUsed_MB', '-')} / {get('PoolAlloc_MB', '-')} MB",
+            ),
+            (
+                "Memory limit",
+                (
+                    "unlimited"
+                    if get("Memmax_MB") in (None, "0")
+                    else f"{get('Memmax_MB')} MB"
+                ),
+            ),
+            ("File descriptor limit", fmt_num(get("Ulimit-n"))),
+            ("CPU idle", f"{get('Idle_pct', '-')} %"),
+            (
+                "Tasks / run queue",
+                f"{fmt_num(get('Tasks'))} / {fmt_num(get('Run_queue'))}",
+            ),
+        ],
+    }
+    if "TotalBytesOut" in info:
+        sections["Traffic"] = [
+            ("Total sent", fmt_size(get("TotalBytesOut"))),
+            ("Current send rate", f"{fmt_size(get('BytesOutRate'))}/s"),
+        ]
+    width = max(len(label) for items in sections.values() for label, _ in items)
+    for title, items in sections.items():
+        print(title)
+        for label, value in items:
+            print(f"  {label.ljust(width)}  {value}")
+        print()
+
+
+def cmd_send(args):
+    """Plain commands; server actions print nothing on success, so any output is an error."""
+    command = args.command % args.target if "target" in args else args.command
+    output = send(args, command)
+    if args.expect_empty and output:
+        die(output)
+    print(output or "OK")
+
+
+def cmd_drained(args):
+    backend, sep, server = args.target.partition("/")
+    if not sep:
+        die("target must be BACKEND/SERVER", EXIT_USAGE)
+    started = time.monotonic()
+    while True:
+        row = next(
+            (
+                row
+                for row in read_stats(args)
+                if (row["pxname"], row["svname"]) == (backend, server)
+            ),
+            None,
+        )
+        if row is None:
+            die(f"no such server {args.target}")
+        # checked on every poll: fails if the server gets re-enabled mid-wait
+        if not row["status"].startswith(("DRAIN", "MAINT")):
+            die(f"{args.target} is {row['status']}, not in drain or maintenance")
+        active, queued = int(row.get("scur") or 0), int(row.get("qcur") or 0)
+        print(
+            f"{time.strftime('%H:%M:%S')}  {args.target}  {row['status']}  "
+            f"{active} active, {queued} queued",
+            flush=True,
+        )
+        if active == queued == 0:
+            print("drained")
+            return
+        if not args.wait:
+            sys.exit(EXIT_NOT_DRAINED)
+        if args.max_wait and time.monotonic() - started >= args.max_wait:
+            print(f"not drained after {fmt_duration(args.max_wait)}", file=sys.stderr)
+            sys.exit(EXIT_NOT_DRAINED)
+        time.sleep(args.interval)
+
+
+# ---------- CLI ----------
+
+
+def build_parser():
+    parser = argparse.ArgumentParser(
+        prog="hasock.py",
+        epilog=EPILOG,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description="Query and control HAProxy through its Runtime API socket.",
+    )
+    parser.add_argument(
+        "-s",
+        "--socket",
+        default=DEFAULT_SOCKET,
+        metavar="PATH",
+        help=f"unix socket path or tcp:HOST:PORT; env HAPROXY_SOCKET (default: {DEFAULT_SOCKET})",
+    )
+    parser.add_argument(
+        "-t",
+        "--timeout",
+        type=float,
+        default=DEFAULT_TIMEOUT,
+        metavar="SEC",
+        help=f"socket timeout in seconds (default: {DEFAULT_TIMEOUT:g})",
+    )
+    parser.add_argument(
+        "-V", "--version", action="version", version=f"%(prog)s {__version__}"
+    )
+    subparsers = parser.add_subparsers(dest="action", metavar="COMMAND")
+
+    def add(name, func, text, **defaults):
+        sub = subparsers.add_parser(name, help=text, description=text)
+        sub.set_defaults(func=func, **defaults)
+        return sub
+
+    def with_name(sub):
+        sub.add_argument(
+            "-n",
+            "--name",
+            metavar="TEXT",
+            help="only proxies or servers whose name contains TEXT (case-insensitive)",
+        )
+
+    def with_target(sub):
+        sub.add_argument("target", metavar="BACKEND/SERVER")
+        return sub
+
+    with_name(
+        add(
+            "stat",
+            cmd_stat,
+            "table of frontends, backends and servers with 2xx/4xx/5xx counts",
+        )
+    )
+    with_name(
+        add(
+            "servers",
+            cmd_servers,
+            "per-backend server overview: status, check, sessions, requests, traffic, downtime",
+        )
+    )
+    add(
+        "info",
+        cmd_info,
+        "process overview: version, uptime, connections, rates, SSL, memory",
+    ).add_argument(
+        "-r", "--raw", action="store_true", help="print HAProxy's unformatted output"
+    )
+    add(
+        "sessions",
+        cmd_send,
+        "list active sessions",
+        command="show sess",
+        expect_empty=False,
+    )
+    for name, command, text in (
+        ("enable", "enable server %s", "take a server out of maintenance"),
+        ("disable", "disable server %s", "put a server into maintenance (no traffic)"),
+        (
+            "drain",
+            "set server %s state drain",
+            "stop new connections to a server; existing ones finish",
+        ),
+    ):
+        with_target(add(name, cmd_send, text, command=command, expect_empty=True))
+    drained = with_target(
+        add(
+            "drained",
+            cmd_drained,
+            "check (exit 0/3) or wait until a server in drain or maintenance has no active or queued sessions",
+        )
+    )
+    drained.add_argument("-w", "--wait", action="store_true", help="poll until drained")
+    drained.add_argument(
+        "-i",
+        "--interval",
+        type=float,
+        default=2.0,
+        metavar="SEC",
+        help="poll interval in seconds (default: 2)",
+    )
+    drained.add_argument(
+        "-T",
+        "--max-wait",
+        type=float,
+        default=0,
+        metavar="SEC",
+        help="give up after SEC seconds (default: no limit)",
+    )
+    add(
+        "raw", cmd_send, "send any Runtime API command verbatim", expect_empty=False
+    ).add_argument("command")
+    add("help", lambda args: parser.print_help(), "show this help")
+    return parser
+
+
+def main():
+    parser = build_parser()
+    args = parser.parse_args()
+    if not args.action:
+        parser.print_help(sys.stderr)
+        sys.exit(EXIT_USAGE)
+    try:
+        args.func(args)
+    except OSError as error:  # missing socket, refused, permission, timeout
+        die(f"cannot reach socket {args.socket}: {error}")
+
+
+if __name__ == "__main__":
+    main()

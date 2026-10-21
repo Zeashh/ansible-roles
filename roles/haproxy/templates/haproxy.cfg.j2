@@ -4,7 +4,7 @@
 
 global
   log stdout syslog notice
-  stats socket /var/run/haproxy.sock mode 600 level admin
+  stats socket {{ haproxy_socket_path }} mode 600 level admin
   # CORS support
   lua-load /etc/haproxy/lib/cors.lua
   tune.bufsize 65536
