@@ -74,6 +74,7 @@
         body:
           enable: 1
         validate_certs: "{{ lookup('env', 'PROXMOX_VALIDATE_CERTS', default='true') | bool }}"
+        no_log: true
     - name: "Start VM (name: {{ proxmox_templates_template.name }}, node: {{ proxmox_templates_template.node }}, VM ID: {{ proxmox_templates_template.id }})"
       community.proxmox.proxmox_kvm:
         vmid: "{{ proxmox_templates_template.id }}"
