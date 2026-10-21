@@ -69,7 +69,7 @@
         state: started
     - name: "Wait for VM to boot (name: {{ proxmox_templates_template.name }}, node: {{ proxmox_templates_template.node }}, VM ID: {{ proxmox_templates_template.id }})"
       ansible.builtin.pause:
-        seconds: 30
+        seconds: 60
   when: proxmox_templates_template.type == 'vm'
 
 - name: Create and start LXC
