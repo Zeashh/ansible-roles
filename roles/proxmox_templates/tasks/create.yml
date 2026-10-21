@@ -58,20 +58,11 @@
         node: "{{ proxmox_templates_template.node }}"
         boot: "order=ide1;scsi0;net0"
         update: true
-    - name: "Wait for VM to become valid for API use (name: {{ proxmox_templates_template.name }}, node: {{ proxmox_templates_template.node }}, VM ID: {{ proxmox_templates_template.id }})"
-      ansible.builtin.pause:
-        seconds: 30
     - name: "Enable VM-level firewall (name: {{ proxmox_templates_template.name }}, node: {{ proxmox_templates_template.node }}, VM ID: {{ proxmox_templates_template.id }})"
-      ansible.builtin.uri:
-        url: "https://{{ lookup('env', 'PROXMOX_HOST') }}:{{ lookup('env', 'PROXMOX_PORT', default='8006') }}/api2/json/nodes/{{ proxmox_templates_template.node }}/qemu/{{ proxmox_templates_template.id }}/firewall/options"
-        method: PUT
-        headers:
-          Authorization: "PVEAPIToken={{ lookup('env', 'PROXMOX_USER') }}!{{ lookup('env', 'PROXMOX_TOKEN_ID') }}={{ lookup('env', 'PROXMOX_TOKEN_SECRET') }}"
-        body_format: form-urlencoded
-        body:
-          enable: 1
-        validate_certs: "{{ lookup('env', 'PROXMOX_VALIDATE_CERTS', default='true') | bool }}"
-      no_log: true
+      ansible.builtin.command: >
+        pvesh set /nodes/{{ proxmox_templates_template.node }}/qemu/{{ proxmox_templates_template.id }}/firewall/options --enable 1
+      delegate_to: "{{ proxmox_templates_template.node }}"
+      changed_when: true
     - name: "Start VM (name: {{ proxmox_templates_template.name }}, node: {{ proxmox_templates_template.node }}, VM ID: {{ proxmox_templates_template.id }})"
       community.proxmox.proxmox_kvm:
         vmid: "{{ proxmox_templates_template.id }}"
