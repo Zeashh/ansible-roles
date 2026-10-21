@@ -2,7 +2,7 @@
   community.crypto.openssh_keypair:
     path: "{{ wireguard_ssh_key_path }}"
     type: ed25519
-  delegate_to: "{{ groups[wireguard_group][0] }}"
+  delegate_to: "{{ ( groups[wireguard_group] | sort )[0] }}"
   tags:
     - wireguard
 
@@ -10,16 +10,16 @@
   ansible.builtin.slurp:
     src: "{{ wireguard_ssh_key_path }}.pub"
   register: pubkey
-  delegate_to: "{{ groups[wireguard_group][0] }}"
+  delegate_to: "{{ ( groups[wireguard_group] | sort )[0] }}"
   tags:
     - wireguard
 
 - name: Add key to target's authorized_keys
   ansible.posix.authorized_key:
     user: root
-    key: "{{ hostvars[groups[wireguard_group][0]]['pubkey'].content | b64decode }}"
+    key: "{{ hostvars[( groups[wireguard_group] | sort )[0]]['pubkey'].content | b64decode }}"
     path: "{{ wireguard_authorized_keys_file }}"
-  delegate_to: "{{ groups[wireguard_group][1] }}"
+  delegate_to: "{{ ( groups[wireguard_group] | sort )[1] }}"
   tags:
     - wireguard
 
@@ -30,7 +30,7 @@
     mode: "0644"
     validate: sshd -t -f %s
   notify: Restart sshd
-  delegate_to: "{{ groups[wireguard_group][1] }}"
+  delegate_to: "{{ ( groups[wireguard_group] | sort )[1] }}"
   tags:
     - wireguard
 
@@ -38,16 +38,16 @@
   ansible.builtin.slurp:
     src: /etc/ssh/ssh_host_ed25519_key.pub
   register: target_hostkey
-  delegate_to: "{{ groups[wireguard_group][1] }}"
+  delegate_to: "{{ ( groups[wireguard_group] | sort )[1] }}"
   tags:
     - wireguard
 
 - name: Add target to master's known_hosts
   ansible.builtin.known_hosts:
     path: /root/.ssh/known_hosts
-    name: "{{ hostvars[groups[wireguard_group][1]]['ansible_host'] | default(groups[wireguard_group][1]) }}"
-    key: "{{ hostvars[groups[wireguard_group][1]]['ansible_host'] | default(groups[wireguard_group][1]) }} {{ (target_hostkey.content | b64decode).split()[0:2] | join(' ') }}"
-  delegate_to: "{{ groups[wireguard_group][0] }}"
+    name: "{{ hostvars[( groups[wireguard_group] | sort )[1]]['ansible_host'] | default(( groups[wireguard_group] | sort )[1]) }}"
+    key: "{{ hostvars[( groups[wireguard_group] | sort )[1]]['ansible_host'] | default(( groups[wireguard_group] | sort )[1]) }} {{ (target_hostkey.content | b64decode).split()[0:2] | join(' ') }}"
+  delegate_to: "{{ ( groups[wireguard_group] | sort )[0] }}"
   tags:
     - wireguard
 
@@ -70,7 +70,7 @@
     group: root
     mode: 0755
   notify: Sync Wireguard configs
-  delegate_to: "{{ groups[wireguard_group][0] }}"
+  delegate_to: "{{ ( groups[wireguard_group] | sort )[0] }}"
   tags:
     - wireguard
 
@@ -80,7 +80,7 @@
     minute: "0"
     hour: "3"
     job: "{{ wireguard_project_path }}/sync.sh"
-  delegate_to: "{{ groups[wireguard_group][0] }}"
+  delegate_to: "{{ ( groups[wireguard_group] | sort )[0] }}"
   tags:
     - wireguard
 

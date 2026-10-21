@@ -2,9 +2,9 @@
   ansible.builtin.service:
     name: ssh
     state: restarted
-  delegate_to: "{{ groups[wireguard_group][1] }}"
+  delegate_to: "{{ ( groups[wireguard_group] | sort )[1] }}"
 
 - name: Sync Wireguard configs
   ansible.builtin.command: "{{ wireguard_project_path }}/sync.sh"
   changed_when: false
-  delegate_to: "{{ groups[wireguard_group][0] }}"
+  delegate_to: "{{ ( groups[wireguard_group] | sort )[0] }}"
