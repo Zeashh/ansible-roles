@@ -3,6 +3,7 @@
     path: "{{ wireguard_ssh_key_path }}"
     type: ed25519
   delegate_to: "{{ ( groups[wireguard_group] | sort )[0] }}"
+  run_once: true
   tags:
     - wireguard
 
@@ -11,15 +12,17 @@
     src: "{{ wireguard_ssh_key_path }}.pub"
   register: pubkey
   delegate_to: "{{ ( groups[wireguard_group] | sort )[0] }}"
+  run_once: true
   tags:
     - wireguard
 
 - name: Add key to target's authorized_keys
   ansible.posix.authorized_key:
     user: root
-    key: "{{ hostvars[( groups[wireguard_group] | sort )[0]]['pubkey'].content | b64decode }}"
+    key: "{{ pubkey.content | b64decode }}"
     path: "{{ wireguard_authorized_keys_file }}"
   delegate_to: "{{ ( groups[wireguard_group] | sort )[1] }}"
+  run_once: true
   tags:
     - wireguard
 
@@ -31,6 +34,7 @@
     validate: sshd -t -f %s
   notify: Restart sshd
   delegate_to: "{{ ( groups[wireguard_group] | sort )[1] }}"
+  run_once: true
   tags:
     - wireguard
 
@@ -39,6 +43,7 @@
     src: /etc/ssh/ssh_host_ed25519_key.pub
   register: target_hostkey
   delegate_to: "{{ ( groups[wireguard_group] | sort )[1] }}"
+  run_once: true
   tags:
     - wireguard
 
@@ -48,6 +53,7 @@
     name: "{{ hostvars[( groups[wireguard_group] | sort )[1]]['ansible_host'] | default(( groups[wireguard_group] | sort )[1]) }}"
     key: "{{ hostvars[( groups[wireguard_group] | sort )[1]]['ansible_host'] | default(( groups[wireguard_group] | sort )[1]) }} {{ (target_hostkey.content | b64decode).split()[0:2] | join(' ') }}"
   delegate_to: "{{ ( groups[wireguard_group] | sort )[0] }}"
+  run_once: true
   tags:
     - wireguard
 
@@ -71,6 +77,7 @@
     mode: 0755
   notify: Sync Wireguard configs
   delegate_to: "{{ ( groups[wireguard_group] | sort )[0] }}"
+  run_once: true
   tags:
     - wireguard
 
@@ -81,6 +88,7 @@
     hour: "3"
     job: "{{ wireguard_project_path }}/sync.sh"
   delegate_to: "{{ ( groups[wireguard_group] | sort )[0] }}"
+  run_once: true
   tags:
     - wireguard
 
