@@ -89,6 +89,50 @@
       changed_when: true
       when: pihole_blocklists_purge | bool
 
+    - name: Get current whitelists
+      uri:
+        url: "{{ pihole_url }}/api/lists?type=allow"
+        headers:
+          X-FTL-SID: "{{ _pihole_auth.json.session.sid }}"
+        validate_certs: "{{ pihole_api_validate_certs }}"
+      register: _pihole_lists
+
+    - name: Set current whitelist addresses
+      set_fact:
+        _pihole_current_whitelists: "{{ _pihole_lists.json.lists | map(attribute='address') | list }}"
+
+    - name: Add whitelists
+      uri:
+        url: "{{ pihole_url }}/api/lists?type=allow"
+        method: POST
+        headers:
+          X-FTL-SID: "{{ _pihole_auth.json.session.sid }}"
+        body_format: json
+        body:
+          address: "{{ item }}"
+          type: allow
+          comment: Managed by Ansible
+          enabled: true
+          groups: [0]
+        status_code: [200, 201]
+        validate_certs: "{{ pihole_api_validate_certs }}"
+      loop: "{{ pihole_whitelists | reject('in', _pihole_current_whitelists) | list }}"
+      register: _pihole_whitelists_added
+      changed_when: true
+
+    - name: Remove unmanaged whitelists
+      uri:
+        url: "{{ pihole_url }}/api/lists/{{ item | urlencode | replace('/', '%2F') }}?type=allow"
+        method: DELETE
+        headers:
+          X-FTL-SID: "{{ _pihole_auth.json.session.sid }}"
+        status_code: [200, 204]
+        validate_certs: "{{ pihole_api_validate_certs }}"
+      loop: "{{ _pihole_current_whitelists | reject('in', pihole_whitelists) | list }}"
+      register: _pihole_whitelists_removed
+      changed_when: true
+      when: pihole_whitelists_purge | bool
+
     - name: Update gravity
       uri:
         url: "{{ pihole_url }}/api/action/gravity"
