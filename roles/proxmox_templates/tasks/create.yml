@@ -25,6 +25,7 @@
           format: "{{ proxmox_templates_template.disk_format }}"
           efitype: "4m"
           pre_enrolled_keys: false
+        vga: serial0
         serial:
           serial0: socket
         scsihw: virtio-scsi-single
