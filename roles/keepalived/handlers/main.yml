@@ -3,7 +3,7 @@
     name: keepalived
     state: reloaded
 
-- name: Reload ssh
+- name: Reload sshd
   service:
     name: sshd
     state: reloaded
