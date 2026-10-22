@@ -26,6 +26,8 @@
     mode: '0664'
     owner: 'root'
     group: 'root'
+    validate: /usr/bin/headscale policy check -f %s
+    backup: true
   notify:
     - Restart Headscale
 
