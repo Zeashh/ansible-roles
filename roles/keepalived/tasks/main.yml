@@ -51,7 +51,7 @@
 
 - name: Enable nonlocal binding
   ansible.posix.sysctl:
-    sysctl_file: /etc/sysctl/99-nonlocal-bind.conf
+    sysctl_file: /etc/sysctl.d/99-nonlocal-bind.conf
     name: "net.ipv4.ip_nonlocal_bind"
     value: "1"
     sysctl_set: true
