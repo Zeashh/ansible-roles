@@ -81,4 +81,5 @@
     headscale nodes approve-routes
     --identifier {{ hs_node_id }}
     --routes {{ headscale_routes | join(',') }}
+  changed_when: false
   delegate_to: "{{ groups[headscale_headscale_group][0] }}"
