@@ -33,7 +33,7 @@
   block:
     - name: Authenticate to Pi-hole API
       uri:
-        url: "{{ pihole__url }}/api/auth"
+        url: "{{ pihole_url }}/api/auth"
         method: POST
         body_format: json
         body:
