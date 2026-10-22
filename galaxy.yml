@@ -21,6 +21,7 @@ dependencies:
   "ansible.posix": ">=2.2.2"
   "community.proxmox": ">=2.0.0"
   "community.crypto": ">=3.4.0"
+  "community.docker": ">=5.4.0"
 
 repository: https://github.com/Zeashh/ansible-roles
 documentation: https://github.com/Zeashh/ansible-roles
