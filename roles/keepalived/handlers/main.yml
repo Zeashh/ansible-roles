@@ -2,3 +2,8 @@
   service:
     name: keepalived
     state: reloaded
+
+- name: Reload ssh
+  service:
+    name: sshd
+    state: reloaded

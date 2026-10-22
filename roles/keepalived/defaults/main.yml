@@ -2,6 +2,7 @@
 keepalived_template_check_script: "check_script.sh.j2"
 keepalived_template_notify_script: "notify_script.sh.j2"
 keepalived_template_keepalived_conf: "keepalived.conf.j2"
+keepalived_template_sshd_bind: "00-sshd_bind.conf.j2"
 
 # Inventory groups
 keepalived_group: edge
@@ -31,3 +32,5 @@ keepalived_discord_alert_payload: |
       "color": 15158332
     }]
   }
+
+keepalived_template_sshd_bind_dest: "/etc/ssh/sshd_config.d/00-sshd_bind.conf"

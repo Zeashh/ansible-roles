@@ -56,3 +56,18 @@
     value: "1"
     sysctl_set: true
     reload: true
+
+- name: Bind SSH only to local IP
+  ansible.builtin.template:
+    src: "{{ keepalived_template_sshd_bind }}"
+    dest: "{{ keepalived_template_sshd_bind_dest }}"
+    lstrip_blocks: true
+    owner: root
+    group: root
+    mode: 0644
+    validate: >-
+      bash -c 'sshd -t -f <(printf "Include %s\nInclude /etc/ssh/sshd_config\n")'
+    backup: true
+  notify: Reload sshd
+  tags:
+    - keepalived
