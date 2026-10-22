@@ -38,6 +38,11 @@
   tags:
     - wireguard
 
+- name: Apply changes now
+  ansible.builtin.meta: flush_handlers
+  tags:
+    - wireguard
+
 - name: Read target host key
   ansible.builtin.slurp:
     src: /etc/ssh/ssh_host_ed25519_key.pub
