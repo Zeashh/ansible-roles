@@ -15,7 +15,7 @@
     lstrip_blocks: true
     owner: root
     group: root
-    mode: 0755
+    mode: 0600
   tags:
     - cloudflare_ddns
 
@@ -26,7 +26,7 @@
     lstrip_blocks: true
     owner: root
     group: root
-    mode: 0700
+    mode: 0600
   tags:
     - cloudflare_ddns
 

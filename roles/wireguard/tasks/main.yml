@@ -91,7 +91,7 @@
     lstrip_blocks: true
     owner: root
     group: root
-    mode: 0755
+    mode: 0600
   notify: Sync Wireguard configs
   tags:
     - wireguard
