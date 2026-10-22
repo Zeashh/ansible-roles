@@ -3,7 +3,7 @@
     name: keepalived
     state: reloaded
 
-- name: Reload sshd
+- name: Restart sshd
   service:
     name: sshd
-    state: reloaded
+    state: restarted
