@@ -68,3 +68,8 @@
   notify: Restart sshd
   tags:
     - keepalived
+
+- name: Apply changes now
+  ansible.builtin.meta: flush_handlers
+  tags:
+    - keepalived
