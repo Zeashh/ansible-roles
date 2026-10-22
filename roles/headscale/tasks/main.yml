@@ -7,12 +7,14 @@
 - name: Headscale tasks
   import_tasks: headscale.yml
   delegate_to: "{{ groups[headscale_headscale_group][0] }}"
+  run_once: true
   tags:
     - headscale_server
 
 - name: Certbot tasks
   import_tasks: certbot.yml
   delegate_to: "{{ groups[headscale_headscale_group][0] }}"
+  run_once: true
   tags:
     - headscale_certbot
 
