@@ -25,6 +25,8 @@
           format: "{{ proxmox_templates_template.disk_format }}"
           efitype: "4m"
           pre_enrolled_keys: false
+        serial:
+          serial0: socket
         scsihw: virtio-scsi-single
         ide:
           ide0: "{{ proxmox_templates_template.storage }}:cloudinit,format={{ proxmox_templates_template.disk_format }}"
