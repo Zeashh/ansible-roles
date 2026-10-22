@@ -26,6 +26,8 @@
     mode: "0600"
     owner: "{{ headscale_ssh_remote_user }}"
     group: "{{ headscale_ssh_remote_user }}"
+    access_time: preserve
+    modification_time: preserve
   delegate_to: "{{ groups[headscale_headscale_group][0] }}"
 
 - name: Place public key on Headscale host

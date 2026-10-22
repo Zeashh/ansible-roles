@@ -30,7 +30,7 @@
 
 - name: Enable IP forwarding
   ansible.posix.sysctl:
-    sysctl_file: /etc/sysctl/99-forwarding.conf
+    sysctl_file: /etc/sysctl.d/99-forwarding.conf
     name: "{{ item }}"
     value: "1"
     sysctl_set: true
