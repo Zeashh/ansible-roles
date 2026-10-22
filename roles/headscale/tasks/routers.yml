@@ -80,5 +80,5 @@
   ansible.builtin.command: >
     headscale nodes approve-routes
     --identifier {{ hs_node_id }}
-    --routes {{ hs_routes | join(',') }}
+    --routes {{ headscale_routes | join(',') }}
   delegate_to: "{{ groups[headscale_headscale_group][0] }}"
