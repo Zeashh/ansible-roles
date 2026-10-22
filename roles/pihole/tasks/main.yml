@@ -1,0 +1,111 @@
+- name: Create compose directory
+  file:
+    path: "{{ pihole_project_path }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+  tags:
+    - pihole
+
+- name: Write compose file
+  template:
+    src: "{{ pihole_template_compose_yaml }}"
+    dest: "{{ pihole_project_path }}/docker-compose.yaml"
+    lstrip_blocks: true
+    owner: root
+    group: root
+    mode: 0600
+  tags:
+    - pihole
+
+- name: Run compose up
+  community.docker.docker_compose_v2:
+    project_src: "{{ pihole_project_path }}"
+    state: present
+    remove_orphans: true
+  tags:
+    - pihole
+
+- name: Manage blocklists via API
+  tags:
+    - pihole
+  block:
+    - name: Authenticate to Pi-hole API
+      uri:
+        url: "{{ pihole__url }}/api/auth"
+        method: POST
+        body_format: json
+        body:
+          password: "{{ pihole_app_password }}"
+        validate_certs: "{{ pihole_api_validate_certs }}"
+      register: _pihole_auth
+      until: _pihole_auth.status == 200
+      retries: 20
+      delay: 3
+      no_log: true
+
+    - name: Get current blocklists
+      uri:
+        url: "{{ pihole_url }}/api/lists?type=block"
+        headers:
+          X-FTL-SID: "{{ _pihole_auth.json.session.sid }}"
+        validate_certs: "{{ pihole_api_validate_certs }}"
+      register: _pihole_lists
+
+    - name: Set current blocklist addresses
+      set_fact:
+        _pihole_current_blocklists: "{{ _pihole_lists.json.lists | map(attribute='address') | list }}"
+
+    - name: Add blocklists
+      uri:
+        url: "{{ pihole_url }}/api/lists?type=block"
+        method: POST
+        headers:
+          X-FTL-SID: "{{ _pihole_auth.json.session.sid }}"
+        body_format: json
+        body:
+          address: "{{ item }}"
+          type: block
+          comment: Managed by Ansible
+          enabled: true
+          groups: [0]
+        status_code: [200, 201]
+        validate_certs: "{{ pihole_api_validate_certs }}"
+      loop: "{{ pihole_blocklists | reject('in', _pihole_current_blocklists) | list }}"
+      register: _pihole_blocklists_added
+      changed_when: true
+
+    - name: Remove unmanaged blocklists
+      uri:
+        url: "{{ pihole_url }}/api/lists/{{ item | urlencode | replace('/', '%2F') }}?type=block"
+        method: DELETE
+        headers:
+          X-FTL-SID: "{{ _pihole_auth.json.session.sid }}"
+        status_code: [200, 204]
+        validate_certs: "{{ pihole_api_validate_certs }}"
+      loop: "{{ _pihole_current_blocklists | reject('in', pihole_blocklists) | list }}"
+      register: _pihole_blocklists_removed
+      changed_when: true
+      when: pihole_blocklists_purge | bool
+
+    - name: Update gravity
+      uri:
+        url: "{{ pihole_url }}/api/action/gravity"
+        method: POST
+        headers:
+          X-FTL-SID: "{{ _pihole_auth.json.session.sid }}"
+        timeout: 900
+        validate_certs: "{{ pihole_api_validate_certs }}"
+      when: _pihole_blocklists_added is changed or _pihole_blocklists_removed is changed
+  always:
+    - name: Log out of Pi-hole API
+      uri:
+        url: "{{ pihole_url }}/api/auth"
+        method: DELETE
+        headers:
+          X-FTL-SID: "{{ _pihole_auth.json.session.sid }}"
+        status_code: [204, 401, 404]
+        validate_certs: "{{ pihole_api_validate_certs }}"
+      when: _pihole_auth.json.session.sid is defined
+      failed_when: false

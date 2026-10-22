@@ -1,0 +1,43 @@
+# Role file/template paths
+pihole_template_compose_yaml: "docker-compose.yaml.j2"
+
+# General settings
+
+pihole_project_path: /opt/compose/pihole
+pihole_image: pihole/pihole:2026.10.0
+pihole_container_name: pihole
+pihole_timezone: Etc/UTC
+pihole_webport: 8888
+pihole_uid: 8000
+pihole_gid: 8000
+pihole_verbose: 1
+
+# FTL configuration - add any configuration settings you want.
+# pihole_conf_* settings will be converted to environment variables FTLCONF_*
+
+pihole_conf_dns_listeningMode: all
+# pihole_conf_webserver_api_pwhash: ""
+# pihole_conf_webserver_api_app_pwhash: ""
+pihole_conf_webserver_threads: 4
+pihole_conf_dns_upstreams:
+  - "8.8.8.8"
+  - "8.8.4.4"
+pihole_conf_dns_domain: lan
+pihole_conf_dns_hosts:
+  - "10.0.0.100 website.domain.com"
+pihole_conf_dns_cnameRecords:
+  - "www.website.domain.com,website.domain.com"
+pihole_conf_misc_dnsmasq_lines:
+  - "address=/local.domain.com/10.0.0.10"
+pihole_conf_dns_rateLimit_count: 2500
+pihole_conf_dns_rateLimit_interval: 10
+
+# Blocklists
+
+# Define in hostvars for multiple Pi-Holes
+pihole_api_url: https://pihole.local.domain.com
+pihole_api_validate_certs: true
+# pihole_app_password: ""
+pihole_blocklists_purge: false
+pihole_blocklists:
+  - https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts

@@ -1,0 +1,26 @@
+services:
+  pihole:
+    container_name: "{{ pihole_container_name }}"
+    image: "{{ pihole_image }}"
+    ports:
+      - "53:53/udp"
+      - "53:53/tcp"
+      - "{{ pihole_webport }}:443/tcp"
+    environment:
+      TZ: 'Europe/Zagreb'
+      PIHOLE_UID: 8000
+      PIHOLE_GID: 8000
+      PH_VERBOSE: {{ pihole_verbose }}
+      {% for name in lookup('ansible.builtin.varnames', '^pihole_conf_.+', wantlist=True) | sort %}
+      {%   set value = lookup('ansible.builtin.vars', name) %}
+      {%   if value is not none %}
+      FTLCONF_{{ name | regex_replace('^pihole_conf_', '') }}: "{{ value | join(';') if value is not string and value is iterable else value }}"
+      {%   endif %}
+      {% endfor %}
+    volumes:
+      - ./etc-pihole:/etc/pihole
+    cap_add:
+      - SYS_NICE
+    restart: unless-stopped
+    logging:
+      driver: syslog
