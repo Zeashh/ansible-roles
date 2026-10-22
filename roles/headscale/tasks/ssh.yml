@@ -6,18 +6,18 @@
     regenerate: full_idempotence
     owner: "{{ headscale_ssh_remote_user }}"
     group: "{{ headscale_ssh_remote_user }}"
-  when: headscale_jump_generate_ed25519 | bool and headscale_jumphost_group in group_names
-
+  when: headscale_jump_generate_ed25519 | bool
+  delegate_to: "{{ groups[headscale_jumphost_group][0] }}"
 - name: Fetch public key (base64 encoded)
   slurp:
     src: "{{ headscale_jump_ssh_key_path }}.pub"
   register: headscale_ssh_public_key_base64
-  when: headscale_jumphost_group in group_names
+  delegate_to: "{{ groups[headscale_jumphost_group][0] }}"
 
 - name: Store public key in variable
   set_fact:
     headscale_ssh_public_key: "{{ hostvars[groups[headscale_jumphost_group][0]]['headscale_ssh_public_key_base64']['content'] | b64decode }}"
-  when: headscale_headscale_group in group_names
+  delegate_to: "{{ groups[headscale_headscale_group][0] }}"
 
 - name: Create authorized_keys file if it doesn't exist
   file:
@@ -26,7 +26,7 @@
     mode: "0600"
     owner: "{{ headscale_ssh_remote_user }}"
     group: "{{ headscale_ssh_remote_user }}"
-  when: headscale_headscale_group in group_names
+  delegate_to: "{{ groups[headscale_headscale_group][0] }}"
 
 - name: Place public key on Headscale host
   lineinfile:
@@ -34,7 +34,7 @@
     line: "{{ headscale_ssh_public_key }}"
     regexp: "^{{ headscale_ssh_public_key }}$"
     state: present
-  when: headscale_headscale_group in group_names
+  delegate_to: "{{ groups[headscale_headscale_group][0] }}"
 
 - name: Copy over jump host's ssh config
   template:
@@ -43,4 +43,4 @@
     mode: '0600'
     owner: "{{ headscale_ssh_remote_user }}"
     group: "{{ headscale_ssh_remote_user }}"
-  when: headscale_jumphost_group in group_names
+  delegate_to: "{{ groups[headscale_jumphost_group][0] }}"

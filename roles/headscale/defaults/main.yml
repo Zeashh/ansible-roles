@@ -11,6 +11,7 @@ headscale_template_ssh_config: ssh_config.j2
 # Inventory groups
 headscale_headscale_group: headscale_server
 headscale_jumphost_group: headscale_jump
+headscale_routers_group: edge
 
 # Headscale
 headscale_domain: domain.com
@@ -48,3 +49,8 @@ headscale_backup_script_name: headscale_backup.sh
 headscale_backup_script_path: "{{ headscale_scripts_dir }}/{{ headscale_backup_script_name }}"
 headscale_backup_prepare_script_name: headscale_backup_prepare.sh
 headscale_backup_prepare_script_path: "{{ headscale_scripts_dir }}/{{ headscale_backup_prepare_script_name }}"
+
+## Routers
+headscale_router_tag: "tag:router"
+headscale_routes:
+  - 10.0.0.0/24

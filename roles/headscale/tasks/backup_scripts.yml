@@ -13,7 +13,7 @@
     mode: '0755'
     owner: "root"
     group: "root"
-  when: headscale_headscale_group in group_names
+  delegate_to: "{{ groups[headscale_headscale_group][0] }}"
 
 - name: "Allow {{ headscale_ssh_remote_user }} on Headscale host to run the script with sudo without password"
   community.general.sudoers:
@@ -21,7 +21,7 @@
     state: present
     user: "{{ headscale_ssh_remote_user }}"
     commands: "{{ headscale_backup_prepare_script_path }}"
-  when: headscale_headscale_group in group_names
+  delegate_to: "{{ groups[headscale_headscale_group][0] }}"
 
 - name: Copy over backup script
   template:
@@ -30,7 +30,7 @@
     mode: '0774'
     owner: "{{ headscale_ssh_remote_user }}"
     group: "{{ headscale_ssh_remote_user }}"
-  when: headscale_jumphost_group in group_names
+  delegate_to: "{{ groups[headscale_jumphost_group][0] }}"
 
 - name: Add backup script cronjob
   cron:
@@ -39,4 +39,4 @@
     hour: "{{ headscale_backup_hour }}"
     job: "{{ headscale_backup_script_path }}"
     user: "{{ headscale_ssh_remote_user }}"
-  when: headscale_jumphost_group in group_names
+  delegate_to: "{{ groups[headscale_jumphost_group][0] }}"

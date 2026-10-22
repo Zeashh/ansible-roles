@@ -1,21 +1,29 @@
 - name: SSH tasks
   import_tasks: ssh.yml
+  when: headscale_headscale_group in group_names or headscale_jumphost_group in group_names
   tags:
     - headscale_ssh
 
 - name: Headscale tasks
   import_tasks: headscale.yml
-  when: headscale_headscale_group in group_names
+  delegate_to: "{{ groups[headscale_headscale_group][0] }}"
   tags:
     - headscale_server
 
 - name: Certbot tasks
   import_tasks: certbot.yml
-  when: headscale_headscale_group in group_names
+  delegate_to: "{{ groups[headscale_headscale_group][0] }}"
   tags:
     - headscale_certbot
 
-- name: Set up scripts on jump host
-  import_tasks: jump_scripts.yml
+- name: Set up backup scripts
+  import_tasks: backup_scripts.yml
+  when: headscale_headscale_group in group_names or headscale_jumphost_group in group_names
   tags:
     - headscale_backup
+
+- name: Set up router hosts
+  import_tasks: routers.yml
+  when: headscale_routers_group in group_names
+  tags:
+    - headscale_routers

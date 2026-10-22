@@ -1,0 +1,84 @@
+- name: Add Tailscale GPG key
+  ansible.builtin.get_url:
+    url: "https://pkgs.tailscale.com/stable/debian/{{ tailscale_debian_suite }}.noarmor.gpg"
+    dest: /usr/share/keyrings/tailscale-archive-keyring.gpg
+    mode: "0644"
+
+- name: Add Tailscale repository
+  ansible.builtin.deb822_repository:
+    name: tailscale
+    types: deb
+    uris: https://pkgs.tailscale.com/stable/debian
+    suites: "{{ tailscale_debian_suite }}"
+    components: main
+    signed_by: /usr/share/keyrings/tailscale-archive-keyring.gpg
+
+- name: Install Tailscale
+  ansible.builtin.apt:
+    name: tailscale
+    update_cache: true
+
+- name: Get Tailscale status
+  ansible.builtin.command: tailscale status --json
+  register: ts_status
+  changed_when: false
+  failed_when: false
+
+- name: Determine if node is already logged in
+  ansible.builtin.set_fact:
+    ts_running: "{{ ts_status.rc == 0 and (ts_status.stdout | from_json).BackendState == 'Running' }}"
+
+- name: Enable IP forwarding
+  ansible.posix.sysctl:
+    sysctl_file: /etc/sysctl/99-forwarding.conf
+    name: "{{ item }}"
+    value: "1"
+    sysctl_set: true
+    reload: true
+  loop:
+    - net.ipv4.ip_forward
+    - net.ipv6.conf.all.forwarding
+
+- name: Create tagged pre-auth key
+  ansible.builtin.command: >
+    headscale preauthkeys create --tags {{ headscale_router_tag }} --expiration 1h -o json
+  delegate_to: "{{ groups[headscale_headscale_group][0] }}"
+  register: hs_key_raw
+  when: not ts_running
+  no_log: true
+
+- name: Join tailnet and advertise routes
+  ansible.builtin.command: >
+    tailscale up
+    --login-server https://{{ headscale_domain }}
+    --authkey {{ (hs_key_raw.stdout | from_json).key }}
+    --hostname {{ inventory_hostname_short }}
+    --advertise-routes {{ headscale_routes | join(',') }}
+  when: not ts_running
+  no_log: true
+
+- name: Update advertised routes on existing node
+  ansible.builtin.command: >
+    tailscale set --advertise-routes {{ headscale_routes | join(',') }}
+  when: ts_running
+  changed_when: false
+
+- name: List Headscale nodes
+  ansible.builtin.command: headscale nodes list -o json
+  delegate_to: "{{ groups[headscale_headscale_group][0] }}"
+  register: hs_nodes
+  changed_when: false
+
+- name: Get node ID
+  ansible.builtin.set_fact:
+    hs_node_id: >-
+      {{ hs_nodes.stdout | from_json
+         | selectattr('name', 'equalto', inventory_hostname_short)
+         | map(attribute='id') | first }}
+
+- name: Approve routes
+  ansible.builtin.command: >
+    headscale nodes approve-routes
+    --identifier {{ hs_node_id }}
+    --routes {{ hs_routes | join(',') }}
+  delegate_to: "{{ groups[headscale_headscale_group][0] }}"
