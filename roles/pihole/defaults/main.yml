@@ -18,7 +18,7 @@ pihole_verbose: 1
 pihole_conf_dns_listeningMode: all
 # pihole_conf_webserver_api_pwhash: ""
 # pihole_conf_webserver_api_app_pwhash: ""
-pihole_conf_webserver_threads: 4
+pihole_conf_webserver_threads: 50
 pihole_conf_dns_upstreams:
   - "8.8.8.8"
   - "8.8.4.4"
