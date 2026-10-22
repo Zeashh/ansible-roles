@@ -9,7 +9,7 @@
     package: "{{ common_config_unwanted_packages }}"
     state: absent
     purge: true
-    autoremove: true
+    lock_timeout: 180
 
 - name: Set up unattended-upgrades configuration
   copy:
@@ -46,7 +46,9 @@
 - name: apt autoremove
   apt:
     autoremove: true
+    lock_timeout: 180
 
 - name: apt clean
   apt:
     clean: true
+    lock_timeout: 180
