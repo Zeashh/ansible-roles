@@ -26,6 +26,10 @@
 
 - name: Necessary patch for plugin
   command: /usr/bin/snap set certbot trust-plugin-with-root=ok
+  register: r
+  until: r.rc == 0
+  retries: 10
+  delay: 3
   changed_when: false
 
 - name: Install certbot Cloudflare plugin with Snap
