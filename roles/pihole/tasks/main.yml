@@ -1,3 +1,28 @@
+- name: Disable systemd-resolved stub listener
+  ansible.builtin.copy:
+    dest: /etc/systemd/resolved.conf.d/no-stub.conf
+    content: |
+      [Resolve]
+      DNSStubListener=no
+    mode: "0644"
+  notify: Restart systemd-resolved
+  tags:
+    - pihole
+
+- name: Point /etc/resolv.conf to upstream resolvers
+  ansible.builtin.file:
+    src: /run/systemd/resolve/resolv.conf
+    dest: /etc/resolv.conf
+    state: link
+    force: true
+  tags:
+    - pihole
+
+- name: Apply changes now
+  ansible.builtin.meta: flush_handlers
+  tags:
+    - pihole
+
 - name: Create compose directory
   file:
     path: "{{ pihole_project_path }}"
