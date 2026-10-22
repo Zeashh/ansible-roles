@@ -41,6 +41,6 @@ pihole_api_validate_certs: true
 pihole_blocklists_purge: false
 pihole_blocklists:
   - https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
-pihole_blocklists_purge: false
+pihole_whitelists_purge: false
 pihole_whitelists:
   - https://raw.githubusercontent.com/hagezi/dns-blocklists/main/adblock/whitelist-referral-native.txt
