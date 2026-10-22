@@ -14,7 +14,7 @@ services:
       {% for name in lookup('ansible.builtin.varnames', '^pihole_conf_.+', wantlist=True) | sort %}
       {%   set value = lookup('ansible.builtin.vars', name) %}
       {%   if value is not none %}
-      FTLCONF_{{ name | regex_replace('^pihole_conf_', '') }}: "{{ value | join(';') if value is not string and value is iterable else value }}"
+      FTLCONF_{{ name | regex_replace('^pihole_conf_', '') }}: '{{ (value | join(';') if value is not string and value is iterable else value) | string | replace('$', '$$') }}'
       {%   endif %}
       {% endfor %}
     volumes:
