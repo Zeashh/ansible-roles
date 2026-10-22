@@ -49,10 +49,10 @@
     update_cache: true
     package: "{{ common_config_proxmox_mandatory_packages }}"
     lock_timeout: 180
-    register: apt_result
-    retries: 10
-    delay: 30
-    until: apt_result is succeeded
+  register: apt_result
+  retries: 10
+  delay: 30
+  until: apt_result is succeeded
 
 - name: Uninstall unwanted packages
   apt:
@@ -60,7 +60,7 @@
     state: absent
     purge: true
     lock_timeout: 180
-    register: apt_result
-    retries: 10
-    delay: 30
-    until: apt_result is succeeded
+  register: apt_result
+  retries: 10
+  delay: 30
+  until: apt_result is succeeded
