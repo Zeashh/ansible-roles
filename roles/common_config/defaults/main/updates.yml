@@ -19,6 +19,8 @@ common_config_mandatory_packages:
   - fastfetch
   - tree
   - apt-transport-https
+  - dnsutils
+  - tmux
 
 common_config_unwanted_packages:
   - openipmi
