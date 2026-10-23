@@ -73,7 +73,7 @@
     - wireguard
 
 - name: Install rsync
-  ansible.builtin.rsync:
+  ansible.builtin.apt:
     update_cache: true
     package: rsync
     lock_timeout: 180
