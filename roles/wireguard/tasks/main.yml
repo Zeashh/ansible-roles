@@ -72,6 +72,18 @@
   tags:
     - wireguard
 
+- name: Install rsync
+  ansible.builtin.rsync:
+    update_cache: true
+    package: rsync
+    lock_timeout: 180
+  register: apt_result
+  retries: 10
+  delay: 30
+  until: apt_result is succeeded
+  tags:
+    - wireguard
+
 - name: Write config sync script
   template:
     src: "{{ wireguard_template_sync_script }}"
