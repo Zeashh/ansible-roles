@@ -1,7 +1,3 @@
-- name: Check if Headscale is installed
-  package_facts:
-    manager: apt
-
 - name: Install Headscale
   apt:
     deb: "{{ headscale_download_url }}"
