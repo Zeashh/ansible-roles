@@ -1,6 +1,8 @@
 - name: Install Headscale
   apt:
     deb: "{{ headscale_headscale_download_url }}"
+  notify:
+    - Restart Headscale
 
 - name: Copy over Headscale's config
   template:
