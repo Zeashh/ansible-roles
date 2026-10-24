@@ -1,7 +1,6 @@
 - name: Install Headscale
   apt:
     deb: "{{ headscale_download_url }}"
-  when: "'headscale' not in ansible_facts.packages"
 
 - name: Copy over Headscale's config
   template:
