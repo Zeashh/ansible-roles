@@ -98,6 +98,17 @@
   tags:
     - wireguard
 
+- name: Write config fetch script
+  template:
+    src: "{{ wireguard_template_fetch_script }}"
+    dest: "{{ wireguard_fetch_script_dest }}"
+    lstrip_blocks: true
+    owner: root
+    group: root
+    mode: 0755
+  tags:
+    - wireguard
+
 - name: Make a cron job for syncing Wireguard configs
   ansible.builtin.cron:
     name: "Sync Wireguard configs"
