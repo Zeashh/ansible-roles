@@ -19,6 +19,7 @@ services:
       {% endfor %}
     volumes:
       - ./etc-pihole:/etc/pihole
+    shm_size: '256m'
     cap_add:
       - SYS_NICE
     restart: unless-stopped
