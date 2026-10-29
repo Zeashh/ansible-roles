@@ -126,6 +126,19 @@
   tags:
     - crowdsec
 
+- name: Write whitelists
+  template:
+    src: "{{ crowdsec_template_whitelist_yaml }}"
+    dest: /etc/crowdsec/parsers/s02-enrich/whitelist.yaml
+    lstrip_blocks: true
+    owner: root
+    group: root
+    mode: 0640
+    backup: true
+  notify: Reload CrowdSec
+  tags:
+    - crowdsec
+
 - name: Write CrowdSec config
   template:
     src: "{{ crowdsec_template_crowdsec_config }}"

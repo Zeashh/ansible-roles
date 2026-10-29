@@ -3,6 +3,7 @@ crowdsec_template_crowdsec_config: "config.yaml.j2"
 crowdsec_template_appsec_yaml: "appsec.yaml.j2"
 crowdsec_template_haproxy_yaml: "haproxy.yaml.j2"
 crowdsec_template_profiles_yaml: "profiles.yaml.j2"
+crowdsec_template_whitelist_yaml: "whitelist.yaml.j2"
 
 # General settings
 crowdsec_packages:

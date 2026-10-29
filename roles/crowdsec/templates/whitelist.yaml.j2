@@ -1,0 +1,6 @@
+name: local/ansible-managed-whitelist
+description: "Ignore Immich noise"
+whitelist:
+  reason: "Immich noise"
+  expression:
+    - evt.Meta.service == 'http' && evt.Meta.http_path matches '^/api/assets/[^/]+/thumbnail'
