@@ -129,7 +129,7 @@
 - name: Write whitelists
   template:
     src: "{{ crowdsec_template_whitelist_yaml }}"
-    dest: /etc/crowdsec/parsers/s02-enrich/whitelist.yaml
+    dest: /etc/crowdsec/parsers/s02-enrich/ansible-whitelist.yaml
     lstrip_blocks: true
     owner: root
     group: root
