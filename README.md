@@ -1,6 +1,6 @@
 # Ansible Collection - grghomelab.roles
 
-> [!attention]
+> [!IMPORTANT] 
 Take into consideration that this project isn't meant to be a one-size-fits-all homelab swiss-tool. It's *my* swiss tool 🙃.
 
 This is a highly opinionated collection of various Ansible roles I use to make administration of my homelab easier.

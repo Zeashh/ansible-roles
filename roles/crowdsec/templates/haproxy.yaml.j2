@@ -1,4 +1,5 @@
-filenames:
-  - /var/log/haproxy.log
+source: journalctl
+journalctl_filter:
+  - "_SYSTEMD_UNIT=haproxy.service"
 labels:
   type: syslog

@@ -3,7 +3,7 @@
 #---------------------------------------------------------------------
 
 global
-  log stdout syslog notice
+  log stdout syslog format raw local0 notice
   stats socket {{ haproxy_socket_path }} mode 600 level admin
   # CORS support
   lua-load /etc/haproxy/lib/cors.lua
