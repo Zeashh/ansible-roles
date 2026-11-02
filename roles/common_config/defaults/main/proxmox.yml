@@ -10,3 +10,9 @@ common_config_subscription_check_url: "shop.maurer-it.com"
 common_config_proxmox_unwanted_packages: []
 common_config_proxmox_mandatory_packages:
   - corosync-qdevice
+
+common_config_backup_namespace: "prod/daily"
+common_config_backup_keyfile: "/root/secrets/backup-key.enc"
+common_config_backup_secret: "/root/secrets/pbs.env"
+common_config_backup_pve_include: "etc.pxar:/etc var_lib_pve-cluster.pxar:/var/lib/pve-cluster home.pxar:/root"
+common_config_backup_pbs_include: "etc.pxar:/etc root.pxar:/root"

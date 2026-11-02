@@ -64,3 +64,22 @@
   retries: 10
   delay: 30
   until: apt_result is succeeded
+
+- name: Write backup script
+  ansible.builtin.template:
+    src: "{{ common_config_template_proxmox_backup }}"
+    dest: /root/scripts/proxmox-backup.sh
+    lstrip_blocks: true
+    owner: root
+    group: root
+    mode: 0755
+  vars:
+    common_config_backup_include: "{{ common_config_backup_pve_include if common_config_pve_group in group_names else common_config_backup_pbs_include }}"
+
+- name: Set cronjob for running backups
+  cron:
+    name: Proxmox backups
+    job: /root/scripts/proxmox-backup.sh
+    minute: '30'
+    hour: '0'
+    user: 'root'
