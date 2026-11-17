@@ -1,3 +1,4 @@
+---
 - name: Generate SSH key
   community.crypto.openssh_keypair:
     path: "{{ headscale_jump_ssh_key_path }}"
@@ -9,18 +10,18 @@
   when: headscale_jump_generate_ed25519 | bool
   delegate_to: "{{ groups[headscale_jumphost_group][0] }}"
 - name: Fetch public key (base64 encoded)
-  slurp:
+  ansible.builtin.slurp:
     src: "{{ headscale_jump_ssh_key_path }}.pub"
   register: headscale_ssh_public_key_base64
   delegate_to: "{{ groups[headscale_jumphost_group][0] }}"
 
 - name: Store public key in variable
-  set_fact:
+  ansible.builtin.set_fact:
     headscale_ssh_public_key: "{{ hostvars[groups[headscale_jumphost_group][0]]['headscale_ssh_public_key_base64']['content'] | b64decode }}"
   delegate_to: "{{ groups[headscale_headscale_group][0] }}"
 
 - name: Create authorized_keys file if it doesn't exist
-  file:
+  ansible.builtin.file:
     path: "{{ headscale_headscale_authorized_keys }}"
     state: touch
     mode: "0600"
@@ -31,7 +32,7 @@
   delegate_to: "{{ groups[headscale_headscale_group][0] }}"
 
 - name: Place public key on Headscale host
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: "{{ headscale_headscale_authorized_keys }}"
     line: "{{ headscale_ssh_public_key }}"
     regexp: "^{{ headscale_ssh_public_key }}$"
@@ -39,10 +40,10 @@
   delegate_to: "{{ groups[headscale_headscale_group][0] }}"
 
 - name: Copy over jump host's ssh config
-  template:
+  ansible.builtin.template:
     src: "{{ headscale_template_ssh_config }}"
     dest: "/home/{{ headscale_ssh_remote_user }}/.ssh/config"
-    mode: '0600'
+    mode: "0600"
     owner: "{{ headscale_ssh_remote_user }}"
     group: "{{ headscale_ssh_remote_user }}"
   delegate_to: "{{ groups[headscale_jumphost_group][0] }}"

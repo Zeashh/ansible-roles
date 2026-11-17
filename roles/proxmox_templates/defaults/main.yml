@@ -1,3 +1,4 @@
+---
 ## General info:
 # - If you need multiple templates, define a list of them and loop over it with include_role, the reason for this design decision is that it allows you to configure the VM/LXC before turning it into a template by filtering task files in include_role
 # - Template comes with firewall enabled (only SSH port open)

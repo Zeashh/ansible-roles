@@ -1,11 +1,14 @@
+---
 - name: Modify PBS repositories
+  when: inventory_hostname in groups[common_config_pbs_group]
+
   block:
     - name: Remove enterprise PBS repository
-      deb822_repository:
+      ansible.builtin.deb822_repository:
         name: pbs-enterprise
         state: absent
     - name: Add no-subscription PBS repository
-      deb822_repository:
+      ansible.builtin.deb822_repository:
         name: pbs-no-subscription
         types: deb
         uris: http://download.proxmox.com/debian/pbs
@@ -13,20 +16,20 @@
         components:
           - pbs-no-subscription
         signed_by: /usr/share/keyrings/proxmox-archive-keyring.gpg
-  when: inventory_hostname in groups[common_config_pbs_group]
-
 - name: Modify PVE repositories
+  when: inventory_hostname in groups[common_config_pve_group]
+
   block:
     - name: Remove enterprise PVE repository
-      deb822_repository:
+      ansible.builtin.deb822_repository:
         name: pve-enterprise
         state: absent
     - name: Remove enterprise Ceph repository
-      deb822_repository:
+      ansible.builtin.deb822_repository:
         name: ceph
         state: absent
     - name: Add no-subscription PVE repository
-      deb822_repository:
+      ansible.builtin.deb822_repository:
         name: pve-no-subscription
         types: deb
         uris: http://download.proxmox.com/debian/pve
@@ -34,18 +37,16 @@
         components:
           - pve-no-subscription
         signed_by: /usr/share/keyrings/proxmox-archive-keyring.gpg
-  when: inventory_hostname in groups[common_config_pve_group]
-
 - name: Gather package facts
-  package_facts:
+  ansible.builtin.package_facts:
     manager: auto
 
 - name: Check if fake subscription is installed
-  import_tasks: set-up-fake-subscription.yml
+  ansible.builtin.import_tasks: set-up-fake-subscription.yml
   when: "'pve-fake-subscription' not in ansible_facts.packages"
 
 - name: Update repos and install useful packages
-  apt:
+  ansible.builtin.apt:
     update_cache: true
     package: "{{ common_config_proxmox_mandatory_packages }}"
     lock_timeout: 180
@@ -55,7 +56,7 @@
   until: apt_result is succeeded
 
 - name: Uninstall unwanted packages
-  apt:
+  ansible.builtin.apt:
     package: "{{ common_config_proxmox_unwanted_packages }}"
     state: absent
     purge: true
@@ -72,14 +73,14 @@
     lstrip_blocks: true
     owner: root
     group: root
-    mode: 0755
+    mode: "0755"
   vars:
     common_config_backup_include: "{{ common_config_backup_pve_include if common_config_pve_group in group_names else common_config_backup_pbs_include }}"
 
 - name: Set cronjob for running backups
-  cron:
+  ansible.builtin.cron:
     name: Proxmox backups
     job: /root/scripts/proxmox-backup.sh
-    minute: '30'
-    hour: '0'
-    user: 'root'
+    minute: "30"
+    hour: "0"
+    user: "root"

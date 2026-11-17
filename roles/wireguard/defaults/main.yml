@@ -1,3 +1,4 @@
+---
 # Rolefile/template paths
 wireguard_template_compose_yaml: "docker-compose.yaml.j2"
 wireguard_template_sync_script: "wireguard_sync.sh.j2"

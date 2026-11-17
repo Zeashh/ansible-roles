@@ -1,3 +1,4 @@
+---
 common_config_local_domain: local.domain.com
 
 common_config_services_to_disable:

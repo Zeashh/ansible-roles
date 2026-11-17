@@ -1,3 +1,4 @@
+---
 # Role file/template paths
 keepalived_template_check_script: "check_script.sh.j2"
 keepalived_template_notify_script: "notify_script.sh.j2"
@@ -25,7 +26,7 @@ keepalived_wireguard_container: wireguard
 keepalived_headscale_health_url: https://headscale.domain.com/health
 keepalived_discord_webhook_url: "https://discord.com/api/webhooks/..."
 keepalived_discord_alert_payload: |
-  {                                      
+  {
     "embeds": [{
       "title": "EDGE HOST DOWN",
       "description": "Check the logs",

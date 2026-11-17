@@ -1,5 +1,6 @@
+---
 - name: Install ISC DHCP server
-  apt:
+  ansible.builtin.apt:
     package: isc-dhcp-server
     update_cache: true
   tags:
@@ -8,7 +9,7 @@
 - name: Set interface to listen to
   ansible.builtin.lineinfile:
     path: /etc/default/isc-dhcp-server
-    regexp: '^INTERFACESv4='
+    regexp: "^INTERFACESv4="
     line: 'INTERFACESv4="{{ isc_dhcp_interface }}"'
   tags:
     - isc_dhcp
@@ -28,9 +29,13 @@
     - isc_dhcp
 
 - name: Upload new DHCP config
+  when: dhcpd_conf_check.changed
+  tags:
+    - isc_dhcp
+
   block:
     - name: Upload isc_dhcp config (temporary location)
-      template:
+      ansible.builtin.template:
         src: "{{ isc_dhcp_template_dhcpd_conf }}"
         dest: /etc/dhcp/dhcpd.conf.tmp
         mode: "0644"
@@ -41,7 +46,7 @@
       ansible.builtin.command: "/sbin/dhcpd -t -cf /etc/dhcp/dhcpd.conf.tmp"
       changed_when: false
     - name: Write new config
-      copy:
+      ansible.builtin.copy:
         remote_src: true
         src: /etc/dhcp/dhcpd.conf.tmp
         dest: /etc/dhcp/dhcpd.conf
@@ -51,15 +56,11 @@
         backup: true
       notify: Restart isc-dhcp-server.service
     - name: Remove tmp file
-      file:
+      ansible.builtin.file:
         path: /etc/dhcp/dhcpd.conf.tmp
         state: absent
-  when: dhcpd_conf_check.changed
-  tags:
-    - isc_dhcp
-
 - name: Start and enable isc-dhcp-server
-  service:
+  ansible.builtin.service:
     name: isc-dhcp-server
     enabled: true
     state: started

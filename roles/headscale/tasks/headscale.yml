@@ -1,42 +1,43 @@
+---
 - name: Install Headscale
-  apt:
+  ansible.builtin.apt:
     deb: "{{ headscale_headscale_download_url }}"
 
 - name: Copy over Headscale's config
-  template:
+  ansible.builtin.template:
     src: "{{ headscale_template_headscale_config }}"
     dest: /etc/headscale/config.yaml
-    mode: '0664'
-    owner: 'root'
-    group: 'root'
+    mode: "0664"
+    owner: "root"
+    group: "root"
     validate: /usr/bin/headscale configtest -c %s
     backup: true
   notify:
     - Restart Headscale
 
 - name: Copy over Headscale's ACL
-  copy:
+  ansible.builtin.copy:
     src: "{{ headscale_file_acl }}"
     dest: /etc/headscale/acl.json
-    mode: '0664'
-    owner: 'root'
-    group: 'root'
+    mode: "0664"
+    owner: "root"
+    group: "root"
     validate: /usr/bin/headscale policy check -f %s
     backup: true
   notify:
     - Restart Headscale
 
 - name: Copy over Headscale's DERP config
-  template:
+  ansible.builtin.template:
     src: "{{ headscale_template_derp }}"
     dest: /etc/headscale/derp.yaml
-    mode: '0664'
-    owner: 'root'
-    group: 'root'
+    mode: "0664"
+    owner: "root"
+    group: "root"
   notify:
     - Restart Headscale
 
 - name: Make sure Headscale is running
-  systemd_service:
+  ansible.builtin.systemd_service:
     name: headscale
     state: started

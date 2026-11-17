@@ -1,3 +1,4 @@
+---
 - name: Add CrowdSec repo
   ansible.builtin.deb822_repository:
     name: crowdsec
@@ -10,7 +11,7 @@
     - crowdsec
 
 - name: Install CrowdSec
-  apt:
+  ansible.builtin.apt:
     package: crowdsec
     update_cache: true
     lock_timeout: 180
@@ -18,26 +19,26 @@
     - crowdsec
 
 - name: Install CrowdSec bouncers
-  apt:
+  ansible.builtin.apt:
     package: "{{ crowdsec_packages }}"
   tags:
     - crowdsec
 
 - name: Update CrowdSec hub
-  command: "cscli hub update"
+  ansible.builtin.command: "cscli hub update"
   changed_when: false
   tags:
     - crowdsec
 
 - name: Install CrowdSec collections
-  command: "cscli collections install {{ item }}"
+  ansible.builtin.command: "cscli collections install {{ item }}"
   changed_when: false
   loop: "{{ crowdsec_collections }}"
   tags:
     - crowdsec
 
 - name: Start and enable CrowdSec
-  service:
+  ansible.builtin.service:
     name: crowdsec
     enabled: true
     state: started
@@ -45,7 +46,7 @@
     - crowdsec
 
 - name: Start and enable SPOA bouncer
-  service:
+  ansible.builtin.service:
     name: crowdsec-spoa-bouncer
     enabled: true
     state: started
@@ -58,7 +59,7 @@
   register: spoa_bouncer_cfg
   tags:
     - crowdsec
- 
+
 - name: Merge AppSec and captcha settings into SPOA bouncer config
   ansible.builtin.copy:
     dest: /etc/crowdsec/bouncers/crowdsec-spoa-bouncer.yaml
@@ -88,65 +89,65 @@
     - crowdsec
 
 - name: Write AppSec listener config
-  template:
+  ansible.builtin.template:
     src: "{{ crowdsec_template_appsec_yaml }}"
     dest: /etc/crowdsec/acquis.d/appsec.yaml
     lstrip_blocks: true
     owner: root
     group: root
-    mode: 0640
+    mode: "0640"
     backup: true
   notify: Restart CrowdSec
   tags:
     - crowdsec
 
 - name: Write HAProxy log acquisition config
-  template:
+  ansible.builtin.template:
     src: "{{ crowdsec_template_haproxy_yaml }}"
     dest: /etc/crowdsec/acquis.d/haproxy.yaml
     lstrip_blocks: true
     owner: root
     group: root
-    mode: 0640
+    mode: "0640"
     backup: true
   notify: Restart CrowdSec
   tags:
     - crowdsec
 
 - name: Write profiles config
-  template:
+  ansible.builtin.template:
     src: "{{ crowdsec_template_profiles_yaml }}"
     dest: /etc/crowdsec/profiles.yaml
     lstrip_blocks: true
     owner: root
     group: root
-    mode: 0640
+    mode: "0640"
     backup: true
   notify: Reload CrowdSec
   tags:
     - crowdsec
 
 - name: Write whitelists
-  template:
+  ansible.builtin.template:
     src: "{{ crowdsec_template_whitelist_yaml }}"
     dest: /etc/crowdsec/parsers/s02-enrich/ansible-whitelist.yaml
     lstrip_blocks: true
     owner: root
     group: root
-    mode: 0640
+    mode: "0640"
     backup: true
   notify: Reload CrowdSec
   tags:
     - crowdsec
 
 - name: Write CrowdSec config
-  template:
+  ansible.builtin.template:
     src: "{{ crowdsec_template_crowdsec_config }}"
     dest: /etc/crowdsec/config.yaml
     lstrip_blocks: true
     owner: root
     group: root
-    mode: 0640
+    mode: "0640"
     validate: /usr/bin/crowdsec -t -c %s
     backup: true
   notify: Restart CrowdSec

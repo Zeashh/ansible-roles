@@ -1,9 +1,10 @@
+---
 - name: Reload keepalived
-  service:
+  ansible.builtin.service:
     name: keepalived
     state: reloaded
 
 - name: Restart sshd
-  service:
+  ansible.builtin.service:
     name: sshd
     state: restarted

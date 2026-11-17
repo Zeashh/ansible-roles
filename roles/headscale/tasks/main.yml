@@ -1,31 +1,32 @@
+---
 - name: SSH tasks
-  import_tasks: ssh.yml
+  ansible.builtin.import_tasks: ssh.yml
   when: headscale_headscale_group in group_names or headscale_jumphost_group in group_names
   tags:
     - headscale_ssh
 
 - name: Headscale tasks
-  import_tasks: headscale.yml
+  ansible.builtin.import_tasks: headscale.yml
   delegate_to: "{{ groups[headscale_headscale_group][0] }}"
   run_once: true
   tags:
     - headscale_server
 
 - name: Certbot tasks
-  import_tasks: certbot.yml
+  ansible.builtin.import_tasks: certbot.yml
   delegate_to: "{{ groups[headscale_headscale_group][0] }}"
   run_once: true
   tags:
     - headscale_certbot
 
 - name: Set up backup scripts
-  import_tasks: backup_scripts.yml
+  ansible.builtin.import_tasks: backup_scripts.yml
   when: headscale_headscale_group in group_names or headscale_jumphost_group in group_names
   tags:
     - headscale_backup
 
 - name: Set up router hosts
-  import_tasks: routers.yml
+  ansible.builtin.import_tasks: routers.yml
   when: headscale_routers_group in group_names
   tags:
     - headscale_routers

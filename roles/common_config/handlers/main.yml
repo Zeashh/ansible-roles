@@ -1,27 +1,27 @@
+---
 - name: Restart systemd-logind
-  service:
+  ansible.builtin.service:
     name: systemd-logind
     state: restarted
 
 - name: Reset list of failed services
-  shell: systemctl reset-failed
-
+  ansible.builtin.command: systemctl reset-failed
 - name: Restart SSH server
-  service:
+  ansible.builtin.service:
     name: sshd
     state: restarted
 
 - name: Enable QEMU guest agent service
-  service:
+  ansible.builtin.service:
     name: qemu-guest-agent
     enabled: true
 
 - name: Start QEMU guest agent
-  service:
+  ansible.builtin.service:
     name: qemu-guest-agent
     state: started
 
 - name: Restart unattended-upgrades.service
-  service:
+  ansible.builtin.service:
     name: unattended-upgrades
     state: restarted

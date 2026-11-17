@@ -1,3 +1,4 @@
+---
 - name: Ensure resolved.conf.d exists
   ansible.builtin.file:
     path: /etc/systemd/resolved.conf.d
@@ -32,23 +33,23 @@
     - pihole
 
 - name: Create compose directory
-  file:
+  ansible.builtin.file:
     path: "{{ pihole_project_path }}"
     state: directory
     owner: root
     group: root
-    mode: 0755
+    mode: "0755"
   tags:
     - pihole
 
 - name: Write compose file
-  template:
+  ansible.builtin.template:
     src: "{{ pihole_template_compose_yaml }}"
     dest: "{{ pihole_project_path }}/docker-compose.yaml"
     lstrip_blocks: true
     owner: root
     group: root
-    mode: 0600
+    mode: "0600"
   tags:
     - pihole
 
@@ -65,7 +66,7 @@
     - pihole
   block:
     - name: Authenticate to Pi-hole API
-      uri:
+      ansible.builtin.uri:
         url: "{{ pihole_url }}/api/auth"
         method: POST
         body_format: json
@@ -79,7 +80,7 @@
       no_log: true
 
     - name: Get current blocklists
-      uri:
+      ansible.builtin.uri:
         url: "{{ pihole_url }}/api/lists?type=block"
         headers:
           X-FTL-SID: "{{ _pihole_auth.json.session.sid }}"
@@ -87,11 +88,11 @@
       register: _pihole_lists
 
     - name: Set current blocklist addresses
-      set_fact:
+      ansible.builtin.set_fact:
         _pihole_current_blocklists: "{{ _pihole_lists.json.lists | map(attribute='address') | list }}"
 
     - name: Add blocklists
-      uri:
+      ansible.builtin.uri:
         url: "{{ pihole_url }}/api/lists?type=block"
         method: POST
         headers:
@@ -110,7 +111,7 @@
       changed_when: true
 
     - name: Remove unmanaged blocklists
-      uri:
+      ansible.builtin.uri:
         url: "{{ pihole_url }}/api/lists/{{ item | urlencode | replace('/', '%2F') }}?type=block"
         method: DELETE
         headers:
@@ -123,7 +124,7 @@
       when: pihole_blocklists_purge | bool
 
     - name: Get current whitelists
-      uri:
+      ansible.builtin.uri:
         url: "{{ pihole_url }}/api/lists?type=allow"
         headers:
           X-FTL-SID: "{{ _pihole_auth.json.session.sid }}"
@@ -131,11 +132,11 @@
       register: _pihole_lists
 
     - name: Set current whitelist addresses
-      set_fact:
+      ansible.builtin.set_fact:
         _pihole_current_whitelists: "{{ _pihole_lists.json.lists | map(attribute='address') | list }}"
 
     - name: Add whitelists
-      uri:
+      ansible.builtin.uri:
         url: "{{ pihole_url }}/api/lists?type=allow"
         method: POST
         headers:
@@ -154,7 +155,7 @@
       changed_when: true
 
     - name: Remove unmanaged whitelists
-      uri:
+      ansible.builtin.uri:
         url: "{{ pihole_url }}/api/lists/{{ item | urlencode | replace('/', '%2F') }}?type=allow"
         method: DELETE
         headers:
@@ -167,7 +168,7 @@
       when: pihole_whitelists_purge | bool
 
     - name: Update gravity
-      uri:
+      ansible.builtin.uri:
         url: "{{ pihole_url }}/api/action/gravity"
         method: POST
         headers:
@@ -177,7 +178,7 @@
       when: _pihole_blocklists_added is changed or _pihole_blocklists_removed is changed
   always:
     - name: Log out of Pi-hole API
-      uri:
+      ansible.builtin.uri:
         url: "{{ pihole_url }}/api/auth"
         method: DELETE
         headers:

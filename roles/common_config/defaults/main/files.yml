@@ -1,3 +1,4 @@
+---
 # Role file/template paths
 common_config_file_bash_logout: "bash_logout"
 common_config_file_bashrc: "bashrc"
