@@ -1,9 +1,10 @@
+---
 - name: Restart Headscale
-  systemd_service:
+  ansible.builtin.systemd_service:
     name: headscale
     state: restarted
 
 - name: Run copy_cert script after new certificate is made
-  shell: /etc/letsencrypt/renewal-hooks/post/copy_certs.sh
+  ansible.builtin.command: /etc/letsencrypt/renewal-hooks/post/copy_certs.sh
   args:
     creates: "{{ headscale_cert_destination_path }}/fullchain.pem"

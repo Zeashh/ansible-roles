@@ -1,0 +1,68 @@
+#!/usr/bin/bash
+
+## These environment variables should be in {{ common_config_backup_secret }}:
+# PBS_REPOSITORY
+# PBS_PASSWORD
+# PBS_FINGERPRINT
+
+_namespace="{{ common_config_backup_namespace }}"
+_include_in_backup="{{ common_config_backup_include }}"
+
+_restore_dest="/tmp/proxmox-backup"
+
+_keyfile="{{ common_config_backup_keyfile }}"
+source "{{ common_config_backup_secret }}"
+
+export PROXMOX_OUTPUT_NO_BORDER=true
+
+makeBackup () {
+    exec 1> >(logger -s -t $(basename $0)) 2>&1
+
+    echo "Starting backup..."
+    apt clean cache
+    proxmox-backup-client backup --keyfile ${_keyfile} -ns $_namespace $_include_in_backup
+
+    _exit_code=$?
+    if [[ $_exit_code != 0 ]]; then
+        echo "Backup failed with exit code $_exit_code!"
+    fi
+}
+
+listBackups () {
+    echo
+    proxmox-backup-client snapshot list -ns $_namespace | grep "$HOSTNAME"
+    echo
+}
+
+restoreBackup () {
+    echo "List of backups:"
+    listBackups
+    echo "Backups will be restored to ${_restore_dest}"
+    read -rp "Which backup do you want to restore? " _snapshot_to_restore
+
+    for f in $(proxmox-backup-client snapshot files -ns $_namespace "$_snapshot_to_restore" --output-format json \
+            | jq -r '.[].filename | select(test("\\.m?pxar\\.didx$"))'); do
+        name="${f%.didx}"
+        target="${_restore_dest}/${name%.*}"
+        mkdir -p "$target"
+        proxmox-backup-client restore --keyfile ${_keyfile} -ns $_namespace "$_snapshot_to_restore" "$name" "$target"
+    done
+
+    cd "${_restore_dest}"
+}
+
+case $1 in
+    backup)
+        makeBackup
+        ;;
+    restore)
+        restoreBackup
+        ;;
+    list)
+        listBackups
+        ;;
+    *)
+        echo "Wrong option, exiting..."
+        ;;
+esac
+

@@ -1,3 +1,4 @@
+---
 # Role file/template paths
 isc_dhcp_template_dhcpd_conf: "dhcpd.conf.j2"
 

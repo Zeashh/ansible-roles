@@ -1,16 +1,17 @@
+---
 - name: Make scripts directory
-  file:
+  ansible.builtin.file:
     path: "{{ headscale_scripts_dir }}"
     state: directory
-    mode: '0755'
+    mode: "0755"
     owner: "{{ headscale_ssh_remote_user }}"
     group: "{{ headscale_ssh_remote_user }}"
 
 - name: Copy over backup preparation script
-  copy:
+  ansible.builtin.copy:
     src: "{{ headscale_file_headscale_backup_prepare }}"
     dest: "{{ headscale_backup_prepare_script_path }}"
-    mode: '0755'
+    mode: "0755"
     owner: "root"
     group: "root"
   delegate_to: "{{ groups[headscale_headscale_group][0] }}"
@@ -24,16 +25,16 @@
   delegate_to: "{{ groups[headscale_headscale_group][0] }}"
 
 - name: Copy over backup script
-  template:
+  ansible.builtin.template:
     src: "{{ headscale_template_headscale_backup }}"
     dest: "{{ headscale_backup_script_path }}"
-    mode: '0774'
+    mode: "0774"
     owner: "{{ headscale_ssh_remote_user }}"
     group: "{{ headscale_ssh_remote_user }}"
   delegate_to: "{{ groups[headscale_jumphost_group][0] }}"
 
 - name: Add backup script cronjob
-  cron:
+  ansible.builtin.cron:
     name: "Headscale backup"
     minute: "0"
     hour: "{{ headscale_backup_hour }}"

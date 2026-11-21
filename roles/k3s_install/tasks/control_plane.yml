@@ -1,5 +1,6 @@
+---
 - name: Run the K3s installation script to initialize the cluster
-  shell: >-
+  ansible.builtin.shell: >-
     curl -sfL https://get.k3s.io |
     K3S_TOKEN={{ k3s_install_token }}
     INSTALL_K3S_VERSION={{ k3s_install_version }}
@@ -22,7 +23,7 @@
   when: k3s_install_cluster_init_runtime | bool
 
 - name: Run the K3s installation script
-  shell: >-
+  ansible.builtin.shell: >-
     curl -sfL https://get.k3s.io |
     K3S_TOKEN={{ k3s_install_token }}
     INSTALL_K3S_VERSION={{ k3s_install_version }}
@@ -45,5 +46,5 @@
   when: not ( k3s_install_cluster_init_runtime | bool )
 
 - name: Wait for installation
-  pause:
+  ansible.builtin.pause:
     seconds: 15

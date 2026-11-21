@@ -1,3 +1,4 @@
+---
 - name: Add Tailscale GPG key
   ansible.builtin.get_url:
     url: "https://pkgs.tailscale.com/stable/debian/{{ tailscale_debian_suite }}.noarmor.gpg"

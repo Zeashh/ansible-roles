@@ -1,3 +1,4 @@
+---
 # Role file/template paths
 pihole_template_compose_yaml: "docker-compose.yaml.j2"
 

@@ -1,5 +1,6 @@
+---
 - name: Update repos and install useful packages
-  apt:
+  ansible.builtin.apt:
     update_cache: true
     package: "{{ common_config_mandatory_packages }}"
     lock_timeout: 180
@@ -9,7 +10,7 @@
   until: apt_result is succeeded
 
 - name: Uninstall unwanted packages
-  apt:
+  ansible.builtin.apt:
     package: "{{ common_config_unwanted_packages }}"
     state: absent
     purge: true
@@ -20,13 +21,13 @@
   until: apt_result is succeeded
 
 - name: Set up unattended-upgrades configuration
-  copy:
+  ansible.builtin.copy:
     src: "{{ common_config_file_unattended_upgrades }}"
     dest: "/etc/apt/apt.conf.d/50unattended-upgrades"
   notify: Restart unattended-upgrades.service
 
 - name: Install QEMU guest agent
-  apt:
+  ansible.builtin.apt:
     package: qemu-guest-agent
     state: latest
   notify:
@@ -37,9 +38,11 @@
     - ansible_facts['virtualization_role'] == 'guest'
 
 - name: Set up QDevice
+  when: common_config_qdevice_group in group_names
+
   block:
     - name: Install qdevice backend on qdevice host
-      apt:
+      ansible.builtin.apt:
         package:
           - corosync-qdevice
           - corosync-qnetd
@@ -49,10 +52,8 @@
         name: corosync-qnetd
         enabled: true
         state: started
-  when: common_config_qdevice_group in group_names
-
-- name: apt autoremove
-  apt:
+- name: Apt autoremove
+  ansible.builtin.apt:
     autoremove: true
     lock_timeout: 180
   register: apt_result
@@ -60,8 +61,8 @@
   delay: 30
   until: apt_result is succeeded
 
-- name: apt clean
-  apt:
+- name: Apt clean
+  ansible.builtin.apt:
     clean: true
     lock_timeout: 180
   register: apt_result

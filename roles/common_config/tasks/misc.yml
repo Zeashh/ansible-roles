@@ -1,10 +1,11 @@
+---
 # Disabling unnecessary services
 
 - name: Populate service facts
-  service_facts:
+  ansible.builtin.service_facts:
 
 - name: Disable unnecessary services
-  service:
+  ansible.builtin.service:
     name: "{{ item }}"
     state: stopped
     enabled: false
@@ -15,14 +16,14 @@
 # SSH
 
 - name: Update SSH config
-  copy:
+  ansible.builtin.copy:
     src: "{{ common_config_file_sshd_config_proxmox }}"
     dest: /etc/ssh/sshd_config
   notify: Restart SSH server
   when: inventory_hostname in groups[common_config_pve_group] + groups[common_config_pbs_group]
 
 - name: Update SSH config
-  copy:
+  ansible.builtin.copy:
     src: "{{ common_config_file_sshd_config_other }}"
     dest: /etc/ssh/sshd_config
   notify: Restart SSH server
@@ -31,13 +32,13 @@
 # Other
 
 - name: Edit /etc/hosts
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: /etc/hosts
     regexp: 127.0.1.1
     line: "127.0.1.1       {{ ansible_facts['hostname'] }}.{{ common_config_local_domain }}   {{ ansible_facts['hostname'] }}"
 
 - name: Disable sleep on closed lid
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: "/etc/systemd/logind.conf"
     regexp: "HandleLidSwitch"
     line: "HandleLidSwitch=ignore"

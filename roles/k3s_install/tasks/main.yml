@@ -1,3 +1,4 @@
+---
 # This role should be executed in serial to avoid conflicts and other issues during the installation process.
 
 - name: Set cluster init
@@ -5,31 +6,31 @@
     k3s_install_cluster_init_runtime: "{{ k3s_install_cluster_init }}"
 
 - name: Pre-installation tasks
-  include_tasks: pre.yml
+  ansible.builtin.include_tasks: pre.yml
 
 - name: Control plane tasks
-  block:
-    - name: Import K3s installation related tasks
-      import_tasks: control_plane.yml
-    - name: Import kube config related tasks
-      import_tasks: kubeconfig.yml
-      run_once: true
   when: k3s_install_control_plane_group in group_names
   tags:
     - k3s_install_control_plane
 
+  block:
+    - name: Import K3s installation related tasks
+      ansible.builtin.import_tasks: control_plane.yml
+    - name: Import kube config related tasks
+      ansible.builtin.import_tasks: kubeconfig.yml
+      run_once: true
 - name: Change the cluster_init variable
-  set_fact:
+  ansible.builtin.set_fact:
     k3s_install_cluster_init_runtime: false
   when: k3s_install_cluster_init_runtime | bool
   tags:
     - k3s_install_control_plane
 
 - name: Node tasks
-  import_tasks: node.yml
+  ansible.builtin.import_tasks: node.yml
   when: k3s_install_node_group in group_names
   tags:
     - k3s_install_node
 
 - name: Post-installation tasks
-  include_tasks: post.yml
+  ansible.builtin.include_tasks: post.yml

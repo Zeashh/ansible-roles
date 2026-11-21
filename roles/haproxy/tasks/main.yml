@@ -1,12 +1,13 @@
+---
 - name: Install HAProxy
-  apt:
+  ansible.builtin.apt:
     package: haproxy
     update_cache: true
   tags:
     - haproxy
 
 - name: Install certbot and Cloudflare plugin
-  apt:
+  ansible.builtin.apt:
     package:
       - certbot
       - python3-certbot-dns-cloudflare
@@ -14,84 +15,84 @@
     - haproxy
 
 - name: Create HAProxy config directory
-  file:
+  ansible.builtin.file:
     path: /etc/haproxy
     state: directory
-    mode: 0770
+    mode: "0770"
     owner: root
     group: root
   tags:
     - haproxy
 
 - name: Create certificate directory
-  file:
+  ansible.builtin.file:
     path: /etc/haproxy/certificates
     state: directory
-    mode: 0770
+    mode: "0770"
     owner: root
     group: root
   tags:
     - haproxy
 
 - name: Create library directory
-  file:
+  ansible.builtin.file:
     path: /etc/haproxy/lib
     state: directory
-    mode: 0770
+    mode: "0770"
     owner: root
     group: root
   tags:
     - haproxy
 
 - name: Write HAProxy socket helper script
-  template:
+  ansible.builtin.template:
     src: "{{ haproxy_template_socket_helper_script }}"
     dest: "{{ haproxy_socket_helper_script_path }}"
-    mode: 0755
+    mode: "0755"
     owner: root
     group: root
   tags:
     - haproxy
 
 - name: Write certificate helper script
-  template:
+  ansible.builtin.template:
     src: "{{ haproxy_template_certbot_helper }}"
     dest: "{{ haproxy_certbot_script_path }}"
-    mode: 0755
+    mode: "0755"
     owner: root
     group: root
   tags:
     - haproxy
 
 - name: Create secrets directory
-  file:
+  ansible.builtin.file:
     path: "{{ haproxy_secrets_path }}"
     state: directory
-    mode: 0700
+    mode: "0700"
     owner: root
     group: root
   tags:
     - haproxy
 
 - name: Write Cloudflare secret
-  template:
+  ansible.builtin.template:
     src: "{{ haproxy_template_cloudflare_ini }}"
     dest: "{{ haproxy_secrets_path }}/cloudflare.ini"
-    mode: 0700
+    mode: "0700"
     owner: root
     group: root
   tags:
     - haproxy
 
 - name: Issue all defined certificates
-  command: "{{ haproxy_certbot_script_path }} {{ item.cn }} {{ item.valid_for | map('quote') | join(' ') }}"
+  ansible.builtin.command: "{{ haproxy_certbot_script_path }} {{ item.cn }} {{ item.valid_for | map('quote') | join(' ') }}"
   changed_when: false
   loop: "{{ haproxy_certificates }}"
   tags:
     - haproxy
 
 - name: Create hooks directory
-  file:
+  ansible.builtin.file:
     path: /etc/letsencrypt/renewal-hooks/post
     mode: "0755"
     owner: root
@@ -101,7 +102,7 @@
     - haproxy
 
 - name: Upload certificate copy script
-  copy:
+  ansible.builtin.copy:
     src: "{{ haproxy_file_copy_certs }}"
     dest: /etc/letsencrypt/renewal-hooks/post/copy-certs.sh
     mode: "0755"
@@ -111,7 +112,7 @@
     - haproxy
 
 - name: Upload Lua CORS library
-  copy:
+  ansible.builtin.copy:
     src: "{{ haproxy_file_cors }}"
     dest: /etc/haproxy/lib/cors.lua
     mode: "0660"
@@ -121,7 +122,7 @@
     - haproxy
 
 - name: Upload error pages
-  copy:
+  ansible.builtin.copy:
     src: "{{ haproxy_file_error_pages }}"
     dest: /etc/haproxy/
     mode: "0660"
@@ -131,7 +132,7 @@
     - haproxy
 
 - name: Upload certificate list
-  template:
+  ansible.builtin.template:
     src: "{{ haproxy_template_certificate_list }}"
     dest: /etc/haproxy/certificate-list.txt
     mode: "0660"
@@ -141,7 +142,7 @@
     - haproxy
 
 - name: Upload Crowdsec HAProxy-side config
-  template:
+  ansible.builtin.template:
     src: "{{ haproxy_template_crowdsec_cfg }}"
     dest: /etc/haproxy/crowdsec.cfg
     mode: "0660"
@@ -153,7 +154,7 @@
     - haproxy
 
 - name: Upload HAProxy config
-  template:
+  ansible.builtin.template:
     src: "{{ haproxy_template_haproxy_cfg }}"
     dest: /etc/haproxy/haproxy.cfg
     mode: "0660"
@@ -168,7 +169,7 @@
     - haproxy
 
 - name: Start and enable HAProxy
-  service:
+  ansible.builtin.service:
     name: haproxy
     enabled: true
     state: started

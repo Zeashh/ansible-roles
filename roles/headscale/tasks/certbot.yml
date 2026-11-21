@@ -1,17 +1,18 @@
+---
 - name: Install snap
-  apt:
+  ansible.builtin.apt:
     name: snapd
   register: snapd_install
 
 - name: Enable classic snap support
-  file:
+  ansible.builtin.file:
     src: /var/lib/snapd/snap
     dest: /snap
     state: link
   when: ansible_facts.os_family != "Debian"
 
 - name: Update snap after install
-  shell: |
+  ansible.builtin.shell: |
     snap install core
     snap refresh core
   changed_when: true
@@ -25,7 +26,7 @@
     classic: true
 
 - name: Necessary patch for plugin
-  command: /usr/bin/snap set certbot trust-plugin-with-root=ok
+  ansible.builtin.command: /usr/bin/snap set certbot trust-plugin-with-root=ok
   register: r
   until: r.rc == 0
   retries: 10
@@ -39,23 +40,23 @@
     classic: true
 
 - name: Make secrets directory
-  file:
+  ansible.builtin.file:
     name: "{{ headscale_secrets_dir }}"
     state: directory
-    mode: '0700'
-    owner: 'root'
-    group: 'root'
+    mode: "0700"
+    owner: "root"
+    group: "root"
 
 - name: Template cloudflare secret
-  template:
+  ansible.builtin.template:
     src: "{{ headscale_template_cloudflare_secret }}"
     dest: "{{ headscale_remote_cf_secrets_file }}"
-    mode: '0600'
-    owner: 'root'
-    group: 'root'
+    mode: "0600"
+    owner: "root"
+    group: "root"
 
 - name: Fetch new certificate if necessary
-  shell: |
+  ansible.builtin.shell: |
     certbot certonly \
       --noninteractive \
       --agree-tos \
@@ -71,29 +72,29 @@
   notify: Run copy_cert script after new certificate is made
 
 - name: Ensure certificate directory exists
-  file:
+  ansible.builtin.file:
     path: "{{ headscale_cert_destination_path }}"
     state: directory
-    owner: 'headscale'
-    group: 'headscale'
-    mode: '0750'
+    owner: "headscale"
+    group: "headscale"
+    mode: "0750"
 
 - name: Template renewal hook script
-  template:
+  ansible.builtin.template:
     src: "{{ headscale_template_copy_certs }}"
     dest: /etc/letsencrypt/renewal-hooks/post/copy_certs.sh
-    mode: '755'
-    owner: 'root'
-    group: 'root'
+    mode: "755"
+    owner: "root"
+    group: "root"
 
 - name: Install cron
-  apt:
+  ansible.builtin.apt:
     name: cron
 
 - name: Set up cronjob for renewal
-  cron:
+  ansible.builtin.cron:
     name: Certbot renewal
     job: /bin/bash -lc 'certbot -q renew'
-    minute: '30'
-    hour: '5'
-    user: 'root'
+    minute: "30"
+    hour: "5"
+    user: "root"

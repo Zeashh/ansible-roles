@@ -1,4 +1,5 @@
+---
 - name: Restart isc-dhcp-server.service
-  service:
+  ansible.builtin.service:
     name: isc-dhcp-server
     state: restarted

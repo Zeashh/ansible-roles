@@ -1,3 +1,4 @@
+---
 # File/template paths
 k3s_install_template_99_k3s_sysctl_path: "99-k3s-sysctl.conf.j2"
 

@@ -1,3 +1,4 @@
+---
 # Role file/template paths
 cloudflare_ddns_template_compose_yaml: "docker-compose.yaml.j2"
 cloudflare_ddns_template_env: "env.j2"

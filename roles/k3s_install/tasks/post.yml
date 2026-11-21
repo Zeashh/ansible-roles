@@ -1,10 +1,11 @@
+---
 - name: K3s-related sysctl configuration
   ansible.builtin.template:
     src: "{{ k3s_install_template_99_k3s_sysctl_path }}"
     dest: /etc/sysctl.d/99-k3s.conf
     owner: root
     group: root
-    mode: 0644
+    mode: "0644"
   notify: Reload sysctl
   tags:
     - k3s_install_control_plane

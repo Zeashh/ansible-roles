@@ -1,3 +1,4 @@
+---
 - name: Generate SSH key on master host
   community.crypto.openssh_keypair:
     path: "{{ wireguard_ssh_key_path }}"
@@ -46,7 +47,7 @@
 - name: Read target host key
   ansible.builtin.slurp:
     src: /etc/ssh/ssh_host_ed25519_key.pub
-  register: target_hostkey
+  register: wireguard_target_hostkey
   delegate_to: "{{ ( groups[wireguard_group] | sort )[1] }}"
   run_once: true
   tags:
@@ -55,20 +56,21 @@
 - name: Add target to master's known_hosts
   ansible.builtin.known_hosts:
     path: /root/.ssh/known_hosts
-    name: "{{ hostvars[( groups[wireguard_group] | sort )[1]]['ansible_host'] | default(( groups[wireguard_group] | sort )[1]) }}"
-    key: "{{ hostvars[( groups[wireguard_group] | sort )[1]]['ansible_host'] | default(( groups[wireguard_group] | sort )[1]) }} {{ (target_hostkey.content | b64decode).split()[0:2] | join(' ') }}"
+    name: "{{ hostvars[(groups[wireguard_group] | sort)[1]]['ansible_host'] | default((groups[wireguard_group] | sort)[1]) }}"
+    key: "{{ hostvars[(groups[wireguard_group] | sort)[1]]['ansible_host'] | default((groups[wireguard_group] | sort)[1]) }} {{ (wireguard_target_hostkey.content
+      | b64decode).split()[0:2] | join(' ') }}"
   delegate_to: "{{ ( groups[wireguard_group] | sort )[0] }}"
   run_once: true
   tags:
     - wireguard
 
 - name: Create compose directory
-  file:
+  ansible.builtin.file:
     path: "{{ wireguard_project_path }}"
     state: directory
     owner: root
     group: root
-    mode: 0755
+    mode: "0755"
   tags:
     - wireguard
 
@@ -85,13 +87,13 @@
     - wireguard
 
 - name: Write config sync script
-  template:
+  ansible.builtin.template:
     src: "{{ wireguard_template_sync_script }}"
     dest: "{{ wireguard_project_path }}/sync.sh"
     lstrip_blocks: true
     owner: root
     group: root
-    mode: 0755
+    mode: "0755"
   notify: Sync Wireguard configs
   delegate_to: "{{ ( groups[wireguard_group] | sort )[0] }}"
   run_once: true
@@ -99,13 +101,13 @@
     - wireguard
 
 - name: Write config fetch script
-  template:
+  ansible.builtin.template:
     src: "{{ wireguard_template_fetch_script }}"
     dest: "{{ wireguard_fetch_script_dest }}"
     lstrip_blocks: true
     owner: root
     group: root
-    mode: 0755
+    mode: "0755"
   tags:
     - wireguard
 
@@ -121,13 +123,13 @@
     - wireguard
 
 - name: Write compose file
-  template:
+  ansible.builtin.template:
     src: "{{ wireguard_template_compose_yaml }}"
     dest: "{{ wireguard_project_path }}/docker-compose.yaml"
     lstrip_blocks: true
     owner: root
     group: root
-    mode: 0600
+    mode: "0600"
   notify: Sync Wireguard configs
   tags:
     - wireguard
