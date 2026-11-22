@@ -26,7 +26,7 @@
     - name: Download airgap images tarball
       ansible.builtin.get_url:
         url: "https://github.com/k3s-io/k3s/releases/download/{{ k3s_install_version | urlencode }}/k3s-airgap-images-{{ k3s_install_arch }}.tar.zst"
-        dest: "/var/lib/rancher/k3s/agent/images/k3s-airgap-images-{{ k3s_arch }}.tar.zst"
+        dest: "/var/lib/rancher/k3s/agent/images/k3s-airgap-images-{{ k3s_install_arch }}.tar.zst"
         mode: "0644"
       notify: Restart K3s
 
