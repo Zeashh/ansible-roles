@@ -37,6 +37,7 @@ k3s_install_etcd_metrics: true
 # Necessary packages
 k3s_install_node_required_packages:
   - open-iscsi
+  - cryptsetup
 
 # Necessary to make 'kubectl logs' command work
 k3s_install_inotify_max_instances: "8192"
