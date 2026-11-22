@@ -28,7 +28,22 @@
         url: "https://github.com/k3s-io/k3s/releases/download/{{ k3s_install_version | urlencode }}/k3s-airgap-images-{{ k3s_install_arch }}.tar.zst"
         dest: "/var/lib/rancher/k3s/agent/images/k3s-airgap-images-{{ k3s_install_arch }}.tar.zst"
         mode: "0644"
+      register: k3s_install_airgap_download
       notify: Restart K3s
+
+      - name: Find airgap tarballs
+        ansible.builtin.find:
+          paths: /var/lib/rancher/k3s/agent/images
+          patterns: "k3s-airgap-images-*"
+        register: k3s_install_airgap_tarballs
+      
+      - name: Remove old airgap tarballs
+        ansible.builtin.file:
+          path: "{{ item.path }}"
+          state: absent
+        loop: "{{ k3s_install_airgap_tarballs.files | rejectattr('path', 'equalto', k3s_install_airgap_download.dest) | list }}"
+        loop_control:
+          label: "{{ item.path }}"
 
     - name: Ensure .cache.json is absent (so images are re-imported and protected)
       ansible.builtin.file:
