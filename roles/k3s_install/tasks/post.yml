@@ -10,3 +10,28 @@
   tags:
     - k3s_install_control_plane
     - k3s_install_node
+
+- name: Pull airgap system images
+  tags:
+    - k3s_install_control_plane
+    - k3s_install_node
+  when: k3s_install_airgap_images
+  block:
+    - name: Create images directory
+      ansible.builtin.file:
+        path: /var/lib/rancher/k3s/agent/images
+        state: directory
+        mode: "0755"
+
+    - name: Download airgap images tarball
+      ansible.builtin.get_url:
+        url: "https://github.com/k3s-io/k3s/releases/download/{{ k3s_install_version | urlencode }}/k3s-airgap-images-{{ k3s_install_arch }}.tar.zst"
+        dest: "/var/lib/rancher/k3s/agent/images/k3s-airgap-images-{{ k3s_arch }}.tar.zst"
+        mode: "0644"
+      notify: Restart K3s
+
+    - name: Ensure .cache.json is absent (so images are re-imported and protected)
+      ansible.builtin.file:
+        path: /var/lib/rancher/k3s/agent/images/.cache.json
+        state: absent
+      notify: Restart K3s

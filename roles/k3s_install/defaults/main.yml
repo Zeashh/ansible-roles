@@ -8,11 +8,13 @@ k3s_install_node_group: "k3s_node"
 
 # General settings
 k3s_install_version: "v1.37.1+k3s1"
+k3s_install_arch: "amd64"
 k3s_install_token: ""
 k3s_install_endpoint_domain: "k3s.local.domain.com"
 k3s_install_endpoint_port: "6443"
 k3s_install_endpoint_scheme: "https"
 k3s_install_cluster_init: false
+k3s_install_airgap_images: true
 
 # Install arguments
 k3s_install_flannel_backend: "wireguard-native"

@@ -12,13 +12,13 @@
   when: k3s_install_control_plane_group in group_names
   tags:
     - k3s_install_control_plane
-
   block:
     - name: Import K3s installation related tasks
       ansible.builtin.import_tasks: control_plane.yml
     - name: Import kube config related tasks
       ansible.builtin.import_tasks: kubeconfig.yml
       run_once: true
+
 - name: Change the cluster_init variable
   ansible.builtin.set_fact:
     k3s_install_cluster_init_runtime: false

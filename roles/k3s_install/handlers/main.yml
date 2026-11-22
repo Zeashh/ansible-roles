@@ -1,3 +1,8 @@
 ---
 - name: Reload sysctl
   ansible.builtin.command: sysctl --system
+
+- name: Restart K3s
+  ansible.builtin.systemd:
+    name: "{{ 'k3s' if k3s_install_control_plane_group in group_names else 'k3s-agent' }}"
+    state: restarted
