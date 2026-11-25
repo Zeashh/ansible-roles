@@ -53,6 +53,9 @@
         vmid: "{{ proxmox_templates_template.id }}"
         disk: scsi0
         storage: "{{ proxmox_templates_template.storage }}"
+        discard: "on"
+        ssd: true
+        iothread: true
         import_from: "{{ proxmox_templates_vm_import_storage }}:import/{{ proxmox_templates_template.disk | basename }}"
         format: "{{ proxmox_templates_template.disk_format }}"
         state: present
