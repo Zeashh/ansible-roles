@@ -13,6 +13,14 @@
   loop: "{{ common_config_services_to_disable }}"
   notify: Reset list of failed services
 
+# TRIM
+
+- name: Enable fstrim timer
+  ansible.builtin.systemd_service:
+    name: fstrim.timer
+    enabled: true
+    state: started
+
 # SSH
 
 - name: Update SSH config
