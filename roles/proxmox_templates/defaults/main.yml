@@ -38,6 +38,8 @@ proxmox_templates_lxc_template_storage: "local"
 #   - dependent on target storage
 # disk_size:
 #   - disk size in GB
+# cpu:
+#   - CPU type, defaults to x86-64-v2-AES
 # cores:
 #   - number of CPU cores
 # memory:
