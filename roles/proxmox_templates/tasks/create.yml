@@ -19,7 +19,7 @@
         name: "{{ proxmox_templates_template.name }}"
         ostype: "{{ proxmox_templates_template.ostype }}"
         machine: q35
-        cpu: "{{ proxmox_templates_template.cpu | default(x86-64-v2-AES) }}"
+        cpu: "{{ proxmox_templates_template.cpu | default(x86-64-v3) }}"
         cores: "{{ proxmox_templates_template.cores }}"
         memory: "{{ proxmox_templates_template.memory }}"
         net:
